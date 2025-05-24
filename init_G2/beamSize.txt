@@ -1,0 +1,10 @@
+# ESTIMATE BEAM SIZE[mm] at AIR
+# by using plinominal
+# SIZE[mm] = f(E[MeV])
+ORDER	5
+5	-3.04674e-10
+4	2.35987e-7
+3	-7.29958e-5
+2	1.14558e-2
+1	-9.50051e-1
+0	3.95546e1

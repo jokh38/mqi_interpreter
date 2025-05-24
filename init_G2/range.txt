@@ -1,0 +1,7 @@
+# ESTIMATE RANGE[mm] in WATER
+# by using plinominal
+# RANGE[mm] = f(E[MeV])
+ORDER	2
+2	4.33132e-3
+1	5.21992e-1
+0	-2.09844e1

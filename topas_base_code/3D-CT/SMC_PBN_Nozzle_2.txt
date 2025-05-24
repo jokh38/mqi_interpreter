@@ -1,0 +1,571 @@
+includeFile  = ControlNozzle0000.txt
+
+i:Ts/ShowHistoryCountAtInterval = 1000
+i:So/MyBeam/NumberOfHistoriesInRun = Tf/Particles/Value
+i:Ts/NumberOfThreads = 24
+
+d:Ge/World/HLX       = 1.0 m
+d:Ge/World/HLY       = 1.0 m
+d:Ge/World/HLZ       = 3.3 m
+#b:Ge/World/Invisible = "True"
+s:Ge/World/Material  = "Vacuum"
+s:Ge/ExitWindow/DrawingStyle = "Solid"
+
+# Scanning Nozzle (a group of components)
+
+#s:Ge/Nozzle/Type   = "Group"
+#s:Ge/Nozzle/Parent = "World"
+#d:Ge/Nozzle/TransX = 0. m
+#d:Ge/Nozzle/TransY = 0. m
+#d:Ge/Nozzle/TransZ = 0. m
+#d:Ge/Nozzle/RotX   = 0. deg
+#d:Ge/Nozzle/RotY   = 0. deg
+#d:Ge/Nozzle/RotZ   = 0. deg
+
+##########################################
+# Quadrupole pair for focusing beam spot
+##########################################
+
+s:Ge/QBox1/Quad/Type          = "TsBox"
+s:Ge/QBox1/Quad/Parent        = "World"
+s:Ge/QBox1/Quad/Material      = "Vacuum"
+d:Ge/QBox1/Quad/HLX           = 5.0 cm
+d:Ge/QBox1/Quad/HLY           = 5.0 cm
+d:Ge/QBox1/Quad/HLZ           = 5 cm
+d:Ge/QBox1/Quad/TransX        = 0.0 cm
+d:Ge/QBox1/Quad/TransY        = 0.0 cm
+d:Ge/QBox1/Quad/TransZ        = 3140 mm #3140 mm
+d:Ge/QBox1/Quad/RotX          = 0.0 deg
+d:Ge/QBox1/Quad/RotY          = 0.0 deg
+d:Ge/QBox1/Quad/RotZ          = 90 deg
+s:Ge/QBox1/Quad/Field = "QuadrupoleMagnet"
+#u:Ge/QBox1/MagneticFieldDirectionX    = 1.0
+#u:Ge/QBox1/MagneticFieldDirectionY    = 1.0
+#u:Ge/QBox1/MagneticFieldDirectionZ    = 1.0
+d:Ge/QBox1/Quad/MagneticFieldGradientX     = 0 tesla/m #0.245 tesla/cm #18. tesla/m #18 tesla/m
+d:Ge/QBox1/Quad/MagneticFieldGradientY     = 0 tesla/m #0.245 tesla/cm #-18. tesla/m #18 tesla/m
+#d:Ge/QBox1/Quad/MagneticFieldGradientZ     = 18 tesla/m # 18 tesla/m
+#d:Ge/QBox1/Quad/MagneticFieldStrength = 10 tesla
+s:Ge/QBox1/Quad/Color = "red"
+
+s:Ge/QBox2/Quad/Type          = "TsBox"
+s:Ge/QBox2/Quad/Parent        = "World"
+s:Ge/QBox2/Quad/Material      = "Vacuum"
+d:Ge/QBox2/Quad/HLX           = 5.0 cm
+d:Ge/QBox2/Quad/HLY           = 5.0 cm
+d:Ge/QBox2/Quad/HLZ           = 5 cm
+d:Ge/QBox2/Quad/TransX        = 0.0 cm
+d:Ge/QBox2/Quad/TransY        = 0.0 cm
+d:Ge/QBox2/Quad/TransZ        = 2875 mm #2875 mm
+d:Ge/QBox2/Quad/RotX          = 0.0 deg
+d:Ge/QBox2/Quad/RotY          = 0.0 deg
+d:Ge/QBox2/Quad/RotZ          = 0 deg
+s:Ge/QBox2/Quad/Field = "QuadrupoleMagnet"
+#u:Ge/QBox2/MagneticFieldDirectionX    = 1	
+#u:Ge/QBox2/MagneticFieldDirectionY    = -1
+#u:Ge/QBox2/MagneticFieldDirectionZ    = 0
+d:Ge/QBox2/Quad/MagneticFieldGradientX     = 0 tesla/m  #0.245 tesla/cm # 0 tesla/m 
+d:Ge/QBox2/Quad/MagneticFieldGradientY     = 0 tesla/m #0.245 tesla/cm #18. tesla/m
+#d:Ge/QBox2/Quad/MagneticFieldGradientZ     = 18 tesla/m
+#d:Ge/QBox2/Quad/MagneticFieldStrength = 10 tesla
+s:Ge/QBox2/Quad/Color = "red"
+
+##########################################
+# Dipole for stiring beam direction!
+##########################################
+
+s:Ge/DBox1/Dipole/Type          = "TsBox"
+s:Ge/DBox1/Dipole/Parent        = "World"
+s:Ge/DBox1/Dipole/Material      = "Vacuum"
+d:Ge/DBox1/Dipole/HLX           = 5 cm
+d:Ge/DBox1/Dipole/HLY           = 2.5 cm
+d:Ge/DBox1/Dipole/HLZ           = 10 cm
+d:Ge/DBox1/Dipole/TransX        = 0.0 cm
+d:Ge/DBox1/Dipole/TransY        = 0.0 cm
+d:Ge/DBox1/Dipole/TransZ        = 2603.0 mm #2603.0 mm
+d:Ge/DBox1/Dipole/RotX          = 0.0 deg
+d:Ge/DBox1/Dipole/RotY          = 0.0 deg
+d:Ge/DBox1/Dipole/RotZ          = 0.0 deg
+s:Ge/DBox1/Dipole/Field = "DipoleMagnet"
+u:Ge/DBox1/Dipole/MagneticFieldDirectionX    = 0.0
+u:Ge/DBox1/Dipole/MagneticFieldDirectionY    = 1.0
+u:Ge/DBox1/Dipole/MagneticFieldDirectionZ    = 0.0
+d:Ge/DBox1/Dipole/MagneticFieldStrength      = Tf/Dipolemagnet1st/Value tesla # Tf/BField1st/Value tesla #0.88 T
+s:Ge/DBox1/Dipole/Color = "purple"
+
+s:Ge/DBox2/Dipole/Type          = "TsBox"
+s:Ge/DBox2/Dipole/Parent        = "World"
+s:Ge/DBox2/Dipole/Material      = "Vacuum"
+d:Ge/DBox2/Dipole/HLX           = 5 cm
+d:Ge/DBox2/Dipole/HLY           = 10 cm
+d:Ge/DBox2/Dipole/HLZ           = 15 cm
+d:Ge/DBox2/Dipole/TransX        = 0.0 cm
+d:Ge/DBox2/Dipole/TransY        = 0.0 cm
+d:Ge/DBox2/Dipole/TransZ        = 2181.4 mm #2181.5 mm
+d:Ge/DBox2/Dipole/RotX          = 0.0 deg
+d:Ge/DBox2/Dipole/RotY          = 0.0 deg
+d:Ge/DBox2/Dipole/RotZ          = 0.0 deg
+s:Ge/DBox2/Dipole/Field = "DipoleMagnet"
+u:Ge/DBox2/Dipole/MagneticFieldDirectionX    = 1.0
+u:Ge/DBox2/Dipole/MagneticFieldDirectionY    = 0.0
+u:Ge/DBox2/Dipole/MagneticFieldDirectionZ    = 0.0
+d:Ge/DBox2/Dipole/MagneticFieldStrength      = Tf/Dipolemagnet2nd/Value tesla #Tf/BField1st/Value tesla  #0.66 T
+s:Ge/DBox2/Dipole/Color = "purple"
+
+########################################
+# Extended Pipe
+########################################
+
+s:Ge/ExtendedPipe/Type               = "TsCylinder"
+s:Ge/ExtendedPipe/Parent             = "World"
+s:Ge/ExtendedPipe/Material           = "G4_He"
+d:Ge/ExtendedPipe/TransX             = 0 cm
+d:Ge/ExtendedPipe/TransY             = 0 cm
+d:Ge/ExtendedPipe/TransZ             = 1565.5 mm
+d:Ge/ExtendedPipe/RotX               = 0 deg
+d:Ge/ExtendedPipe/RotY               = 0 deg
+d:Ge/ExtendedPipe/RotZ               = 0 deg
+d:Ge/ExtendedPipe/RMax               = 167.8 mm
+d:Ge/ExtendedPipe/HL                 = 428.5 mm #320 mm
+
+s:Ge/ExtendedPipe/Color              = "yellow"
+s:Ge/ExtendedPipe/DrawingStyle       = "FullWireFrame"
+
+#########################################
+
+# Dose Monitor & Flatness monitor
+
+s:Ge/DoseMonitor/Type               = "TsCylinder"
+s:Ge/DoseMonitor/Parent             = "World"
+s:Ge/DoseMonitor/Material           = "G4_AIR"
+d:Ge/DoseMonitor/TransX             = 0 cm
+d:Ge/DoseMonitor/TransY             = 0 cm
+d:Ge/DoseMonitor/TransZ             = 988.9375 mm #1212.9 mm
+d:Ge/DoseMonitor/RotX               = 0 deg
+d:Ge/DoseMonitor/RotY               = 0 deg
+d:Ge/DoseMonitor/RotZ               = 0 deg
+d:Ge/DoseMonitor/RMax               = 185 mm    # 370mm, Multipurpose=257mm
+d:Ge/DoseMonitor/HL                 = 25 mm
+s:Ge/DoseMonitor/DrawingStyle       = "FullWireframe"
+s:Ge/DoseMonitor/Color              = "white"
+
+# Shield electrode
+
+s:Ge/ShieldElectrode1/Type               = "TsCylinder"
+s:Ge/ShieldElectrode1/Parent             = "DoseMonitor"
+s:Ge/ShieldElectrode1/Material           = "Copper"
+d:Ge/ShieldElectrode1/TransX             = 0 cm
+d:Ge/ShieldElectrode1/TransY             = 0 cm
+d:Ge/ShieldElectrode1/TransZ             = Ge/DoseMonitor/HL - 0.026 mm
+d:Ge/ShieldElectrode1/RotX               = 0 deg
+d:Ge/ShieldElectrode1/RotY               = 0 deg
+d:Ge/ShieldElectrode1/RotZ               = 0 deg
+d:Ge/ShieldElectrode1/RMax               = 185 mm
+d:Ge/ShieldElectrode1/HL                 = 0.001 mm
+s:Ge/ShieldElectrode1/Color              = "green"
+s:Ge/ShieldElectrode1/DrawingStyle       = "FullWireframe"
+
+s:Ge/ShieldElectrode1_Kapton/Type               = "TsCylinder"
+s:Ge/ShieldElectrode1_Kapton/Parent             = "DoseMonitor"
+s:Ge/ShieldElectrode1_Kapton/Material           = "G4_KAPTON"
+d:Ge/ShieldElectrode1_Kapton/TransX             = 0 cm
+d:Ge/ShieldElectrode1_Kapton/TransY             = 0 cm
+d:Ge/ShieldElectrode1_Kapton/TransZ             = Ge/DoseMonitor/HL - 0.0125 mm
+d:Ge/ShieldElectrode1_Kapton/RotX               = 0 deg
+d:Ge/ShieldElectrode1_Kapton/RotY               = 0 deg
+d:Ge/ShieldElectrode1_Kapton/RotZ               = 0 deg
+d:Ge/ShieldElectrode1_Kapton/RMax               = 185 mm
+d:Ge/ShieldElectrode1_Kapton/HL                 = 0.0125 mm
+s:Ge/ShieldElectrode1_Kapton/Color              = "white"
+s:Ge/ShieldElectrode1_Kapton/DrawingStyle       = "FullWireframe"
+
+s:Ge/ShieldElectrode2/Type               = "TsCylinder"
+s:Ge/ShieldElectrode2/Parent             = "DoseMonitor"
+s:Ge/ShieldElectrode2/Material           = "Copper"
+d:Ge/ShieldElectrode2/TransX             = 0 cm
+d:Ge/ShieldElectrode2/TransY             = 0 cm
+d:Ge/ShieldElectrode2/TransZ             = Ge/DoseMonitor/HL - 49.94 mm
+d:Ge/ShieldElectrode2/RotX               = 0 deg
+d:Ge/ShieldElectrode2/RotY               = 0 deg
+d:Ge/ShieldElectrode2/RotZ               = 0 deg
+d:Ge/ShieldElectrode2/RMax               = 185 mm
+d:Ge/ShieldElectrode2/HL                 = 0.001 mm
+s:Ge/ShieldElectrode2/Color              = "green"
+s:Ge/ShieldElectrode2/DrawingStyle       = "FullWireframe"
+
+s:Ge/ShieldElectrode2_KAPTON/Type               = "TsCylinder"
+s:Ge/ShieldElectrode2_KAPTON/Parent             = "DoseMonitor"
+s:Ge/ShieldElectrode2_KAPTON/Material           = "G4_KAPTON"
+d:Ge/ShieldElectrode2_KAPTON/TransX             = 0 cm
+d:Ge/ShieldElectrode2_KAPTON/TransY             = 0 cm
+d:Ge/ShieldElectrode2_KAPTON/TransZ             = Ge/DoseMonitor/HL - 49.9535 mm
+d:Ge/ShieldElectrode2_KAPTON/RotX               = 0 deg
+d:Ge/ShieldElectrode2_KAPTON/RotY               = 0 deg
+d:Ge/ShieldElectrode2_KAPTON/RotZ               = 0 deg
+d:Ge/ShieldElectrode2_KAPTON/RMax               = 185 mm
+d:Ge/ShieldElectrode2_KAPTON/HL                 = 0.0125 mm
+s:Ge/ShieldElectrode2_KAPTON/Color              = "white"
+s:Ge/ShieldElectrode2_KAPTON/DrawingStyle       = "FullWireframe"
+
+
+# Collection electrode
+s:Ge/CollectionElectrode1/Type               = "TsCylinder"
+s:Ge/CollectionElectrode1/Parent             = "DoseMonitor"
+s:Ge/CollectionElectrode1/Material           = "Copper"
+d:Ge/CollectionElectrode1/TransX             = 0 cm
+d:Ge/CollectionElectrode1/TransY             = 0 cm
+d:Ge/CollectionElectrode1/TransZ             = Ge/DoseMonitor/HL - 11.519 mm
+d:Ge/CollectionElectrode1/RotX               = 0 deg
+d:Ge/CollectionElectrode1/RotY               = 0 deg
+d:Ge/CollectionElectrode1/RotZ               = 0 deg
+d:Ge/CollectionElectrode1/RMax               = 185 mm
+d:Ge/CollectionElectrode1/HL                 = 0.001 mm
+s:Ge/CollectionElectrode1/Color              = "red"
+s:Ge/CollectionElectrode1/DrawingStyle       = "FullWireframe"
+
+s:Ge/CollectionElectrode1_KAPTON/Type               = "TsCylinder"
+s:Ge/CollectionElectrode1_KAPTON/Parent             = "DoseMonitor"
+s:Ge/CollectionElectrode1_KAPTON/Material           = "G4_KAPTON"
+d:Ge/CollectionElectrode1_KAPTON/TransX             = 0 cm
+d:Ge/CollectionElectrode1_KAPTON/TransY             = 0 cm
+d:Ge/CollectionElectrode1_KAPTON/TransZ             = Ge/DoseMonitor/HL - 11.5055 mm
+d:Ge/CollectionElectrode1_KAPTON/RotX               = 0 deg
+d:Ge/CollectionElectrode1_KAPTON/RotY               = 0 deg
+d:Ge/CollectionElectrode1_KAPTON/RotZ               = 0 deg
+d:Ge/CollectionElectrode1_KAPTON/RMax               = 185 mm
+d:Ge/CollectionElectrode1_KAPTON/HL                 = 0.0125 mm
+s:Ge/CollectionElectrode1_KAPTON/Color              = "white"
+s:Ge/CollectionElectrode1_KAPTON/DrawingStyle       = "FullWireframe"
+
+
+s:Ge/CollectionElectrode2/Type               = "TsCylinder"
+s:Ge/CollectionElectrode2/Parent             = "DoseMonitor"
+s:Ge/CollectionElectrode2/Material           = "Copper"
+d:Ge/CollectionElectrode2/TransX             = 0 cm
+d:Ge/CollectionElectrode2/TransY             = 0 cm
+d:Ge/CollectionElectrode2/TransZ             = Ge/DoseMonitor/HL - 38.447 mm
+d:Ge/CollectionElectrode2/RotX               = 0 deg
+d:Ge/CollectionElectrode2/RotY               = 0 deg
+d:Ge/CollectionElectrode2/RotZ               = 0 deg
+d:Ge/CollectionElectrode2/RMax               = 185 mm
+d:Ge/CollectionElectrode2/HL                 = 0.001 mm
+s:Ge/CollectionElectrode2/Color              = "red"
+s:Ge/CollectionElectrode2/DrawingStyle       = "FullWireframe"
+
+s:Ge/CollectionElectrode2_KAPTON/Type               = "TsCylinder"
+s:Ge/CollectionElectrode2_KAPTON/Parent             = "DoseMonitor"
+s:Ge/CollectionElectrode2_KAPTON/Material           = "G4_KAPTON"
+d:Ge/CollectionElectrode2_KAPTON/TransX             = 0 cm
+d:Ge/CollectionElectrode2_KAPTON/TransY             = 0 cm
+d:Ge/CollectionElectrode2_KAPTON/TransZ             = Ge/DoseMonitor/HL - 38.4605 mm
+d:Ge/CollectionElectrode2_KAPTON/RotX               = 0 deg
+d:Ge/CollectionElectrode2_KAPTON/RotY               = 0 deg
+d:Ge/CollectionElectrode2_KAPTON/RotZ               = 0 deg
+d:Ge/CollectionElectrode2_KAPTON/RMax               = 185 mm
+d:Ge/CollectionElectrode2_KAPTON/HL                 = 0.0125 mm
+s:Ge/CollectionElectrode2_KAPTON/Color              = "white"
+s:Ge/CollectionElectrode2_KAPTON/DrawingStyle       = "FullWireframe"
+
+
+# HighVoltage electrode
+
+s:Ge/HighVoltageElectrode1/Type               = "TsCylinder"
+s:Ge/HighVoltageElectrode1/Parent             = "DoseMonitor"
+s:Ge/HighVoltageElectrode1/Material           = "Copper"
+d:Ge/HighVoltageElectrode1/TransX             = 0 cm
+d:Ge/HighVoltageElectrode1/TransY             = 0 cm
+d:Ge/HighVoltageElectrode1/TransZ             = Ge/DoseMonitor/HL - 21.487 mm
+d:Ge/HighVoltageElectrode1/RotX               = 0 deg
+d:Ge/HighVoltageElectrode1/RotY               = 0 deg
+d:Ge/HighVoltageElectrode1/RotZ               = 0 deg
+d:Ge/HighVoltageElectrode1/RMax               = 185 mm
+d:Ge/HighVoltageElectrode1/HL                 = 0.001 mm
+s:Ge/HighVoltageElectrode1/Color              = "grey"
+s:Ge/HighVoltageElectrode1/DrawingStyle       = "FullWireframe"
+
+s:Ge/HighVoltageElectrode1_KAPTON/Type               = "TsCylinder"
+s:Ge/HighVoltageElectrode1_KAPTON/Parent             = "DoseMonitor"
+s:Ge/HighVoltageElectrode1_KAPTON/Material           = "G4_KAPTON"
+d:Ge/HighVoltageElectrode1_KAPTON/TransX             = 0 cm
+d:Ge/HighVoltageElectrode1_KAPTON/TransY             = 0 cm
+d:Ge/HighVoltageElectrode1_KAPTON/TransZ             = Ge/DoseMonitor/HL - 21.5005 mm
+d:Ge/HighVoltageElectrode1_KAPTON/RotX               = 0 deg
+d:Ge/HighVoltageElectrode1_KAPTON/RotY               = 0 deg
+d:Ge/HighVoltageElectrode1_KAPTON/RotZ               = 0 deg
+d:Ge/HighVoltageElectrode1_KAPTON/RMax               = 185 mm
+d:Ge/HighVoltageElectrode1_KAPTON/HL                 = 0.0125 mm
+s:Ge/HighVoltageElectrode1_KAPTON/Color              = "white"
+s:Ge/HighVoltageElectrode1_KAPTON/DrawingStyle       = "FullWireframe"
+
+s:Ge/HighVoltageElectrode2/Type               = "TsCylinder"
+s:Ge/HighVoltageElectrode2/Parent             = "DoseMonitor"
+s:Ge/HighVoltageElectrode2/Material           = "Copper"
+d:Ge/HighVoltageElectrode2/TransX             = 0 cm
+d:Ge/HighVoltageElectrode2/TransY             = 0 cm
+d:Ge/HighVoltageElectrode2/TransZ             = Ge/DoseMonitor/HL - 28.48 mm
+d:Ge/HighVoltageElectrode2/RotX               = 0 deg
+d:Ge/HighVoltageElectrode2/RotY               = 0 deg
+d:Ge/HighVoltageElectrode2/RotZ               = 0 deg
+d:Ge/HighVoltageElectrode2/RMax               = 185 mm
+d:Ge/HighVoltageElectrode2/HL                 = 0.001 mm
+s:Ge/HighVoltageElectrode2/Color              = "grey"
+s:Ge/HighVoltageElectrode2/DrawingStyle       = "FullWireframe"
+
+s:Ge/HighVoltageElectrode2_KAPTON/Type               = "TsCylinder"
+s:Ge/HighVoltageElectrode2_KAPTON/Parent             = "DoseMonitor"
+s:Ge/HighVoltageElectrode2_KAPTON/Material           = "G4_KAPTON"
+d:Ge/HighVoltageElectrode2_KAPTON/TransX             = 0 cm
+d:Ge/HighVoltageElectrode2_KAPTON/TransY             = 0 cm
+d:Ge/HighVoltageElectrode2_KAPTON/TransZ             = Ge/DoseMonitor/HL - 28.4665 mm
+d:Ge/HighVoltageElectrode2_KAPTON/RotX               = 0 deg
+d:Ge/HighVoltageElectrode2_KAPTON/RotY               = 0 deg
+d:Ge/HighVoltageElectrode2_KAPTON/RotZ               = 0 deg
+d:Ge/HighVoltageElectrode2_KAPTON/RMax               = 185 mm
+d:Ge/HighVoltageElectrode2_KAPTON/HL                 = 0.0125 mm
+s:Ge/HighVoltageElectrode2_KAPTON/Color              = "white"
+s:Ge/HighVoltageElectrode2_KAPTON/DrawingStyle       = "FullWireframe"
+
+# Monitor Air Gap
+s:Ge/AirGap/Type               = "TsCylinder"
+s:Ge/AirGap/Parent             = "World"
+s:Ge/AirGap/Material           = "G4_AIR"
+d:Ge/AirGap/TransX             = 0 cm
+d:Ge/AirGap/TransY             = 0 cm
+d:Ge/AirGap/TransZ             = 950 mm
+d:Ge/AirGap/RotX               = 0 deg
+d:Ge/AirGap/RotY               = 0 deg
+d:Ge/AirGap/RotZ               = 0 deg
+d:Ge/AirGap/RMax               = 185 mm    # Same Monitor diameter
+d:Ge/AirGap/HL                 = 13.9 mm
+s:Ge/AirGap/DrawingStyle       = "FullWireframe"
+s:Ge/AirGap/Color              = "white"
+
+# Flatness Monitor
+
+s:Ge/FlatnessMonitor/Type               = "TsCylinder"
+s:Ge/FlatnessMonitor/Parent             = "World"
+s:Ge/FlatnessMonitor/Material           = "G4_AIR"
+d:Ge/FlatnessMonitor/TransX             = 0 cm
+d:Ge/FlatnessMonitor/TransY             = 0 cm
+d:Ge/FlatnessMonitor/TransZ             = 916.05 mm
+d:Ge/FlatnessMonitor/RotX               = 0 deg
+d:Ge/FlatnessMonitor/RotY               = 0 deg
+d:Ge/FlatnessMonitor/RotZ               = 0 deg
+d:Ge/FlatnessMonitor/RMax               = 185 mm  # diameter 370mm
+d:Ge/FlatnessMonitor/HL                 = 20.05 mm
+s:Ge/FlatnessMonitor/Color              = "grey"
+s:Ge/FlatnessMonitor/DrawingStyle       = "FullWireframe"
+
+# Flatness_Shield Electrode
+
+s:Ge/FlatShieldElectrode1/Type               = "TsCylinder"
+s:Ge/FlatShieldElectrode1/Parent             = "FlatnessMonitor"
+s:Ge/FlatShieldElectrode1/Material           = "Copper"
+d:Ge/FlatShieldElectrode1/TransX             = 0 cm
+d:Ge/FlatShieldElectrode1/TransY             = 0 cm
+d:Ge/FlatShieldElectrode1/TransZ             = Ge/FlatnessMonitor/HL - 0.026 mm
+d:Ge/FlatShieldElectrode1/RotX               = 0 deg
+d:Ge/FlatShieldElectrode1/RotY               = 0 deg
+d:Ge/FlatShieldElectrode1/RotZ               = 0 deg
+d:Ge/FlatShieldElectrode1/RMax               = 185 mm
+d:Ge/FlatShieldElectrode1/HL                 = 0.001 mm
+s:Ge/FlatShieldElectrode1/Color              = "green"
+s:Ge/FlatShieldElectrode1/DrawingStyle       = "FullWireframe"
+
+s:Ge/FlatShieldElectrode1_KAPTON/Type               = "TsCylinder"
+s:Ge/FlatShieldElectrode1_KAPTON/Parent             = "FlatnessMonitor"
+s:Ge/FlatShieldElectrode1_KAPTON/Material           = "G4_KAPTON"
+d:Ge/FlatShieldElectrode1_KAPTON/TransX             = 0 cm
+d:Ge/FlatShieldElectrode1_KAPTON/TransY             = 0 cm
+d:Ge/FlatShieldElectrode1_KAPTON/TransZ             = Ge/FlatnessMonitor/HL - 0.0125 mm
+d:Ge/FlatShieldElectrode1_KAPTON/RotX               = 0 deg
+d:Ge/FlatShieldElectrode1_KAPTON/RotY               = 0 deg
+d:Ge/FlatShieldElectrode1_KAPTON/RotZ               = 0 deg
+d:Ge/FlatShieldElectrode1_KAPTON/RMax               = 185 mm
+d:Ge/FlatShieldElectrode1_KAPTON/HL                 = 0.0125 mm
+s:Ge/FlatShieldElectrode1_KAPTON/Color              = "white"
+s:Ge/FlatShieldElectrode1_KAPTON/DrawingStyle       = "FullWireframe"
+
+s:Ge/FlatShieldElectrode2/Type               = "TsCylinder"
+s:Ge/FlatShieldElectrode2/Parent             = "FlatnessMonitor"
+s:Ge/FlatShieldElectrode2/Material           = "Copper"
+d:Ge/FlatShieldElectrode2/TransX             = 0 cm
+d:Ge/FlatShieldElectrode2/TransY             = 0 cm
+d:Ge/FlatShieldElectrode2/TransZ             = Ge/FlatnessMonitor/HL - 40.074 mm
+d:Ge/FlatShieldElectrode2/RotX               = 0 deg
+d:Ge/FlatShieldElectrode2/RotY               = 0 deg
+d:Ge/FlatShieldElectrode2/RotZ               = 0 deg
+d:Ge/FlatShieldElectrode2/RMax               = 185 mm
+d:Ge/FlatShieldElectrode2/HL                 = 0.001 mm
+s:Ge/FlatShieldElectrode2/Color              = "green"
+s:Ge/FlatShieldElectrode2/DrawingStyle       = "FullWireframe"
+
+s:Ge/FlatShieldElectrode2_KAPTON/Type               = "TsCylinder"
+s:Ge/FlatShieldElectrode2_KAPTON/Parent             = "FlatnessMonitor"
+s:Ge/FlatShieldElectrode2_KAPTON/Material           = "G4_KAPTON"
+d:Ge/FlatShieldElectrode2_KAPTON/TransX             = 0 cm
+d:Ge/FlatShieldElectrode2_KAPTON/TransY             = 0 cm
+d:Ge/FlatShieldElectrode2_KAPTON/TransZ             = Ge/FlatnessMonitor/HL - 40.0875 mm
+d:Ge/FlatShieldElectrode2_KAPTON/RotX               = 0 deg
+d:Ge/FlatShieldElectrode2_KAPTON/RotY               = 0 deg
+d:Ge/FlatShieldElectrode2_KAPTON/RotZ               = 0 deg
+d:Ge/FlatShieldElectrode2_KAPTON/RMax               = 185 mm
+d:Ge/FlatShieldElectrode2_KAPTON/HL                 = 0.0125 mm
+s:Ge/FlatShieldElectrode2_KAPTON/Color              = "white"
+s:Ge/FlatShieldElectrode2_KAPTON/DrawingStyle       = "FullWireframe"
+
+# Flatness_Collection Electrode
+
+s:Ge/FlatCollectionElectrode1/Type               = "TsCylinder"
+s:Ge/FlatCollectionElectrode1/Parent             = "FlatnessMonitor"
+s:Ge/FlatCollectionElectrode1/Material           = "Copper"
+d:Ge/FlatCollectionElectrode1/TransX             = 0 cm
+d:Ge/FlatCollectionElectrode1/TransY             = 0 cm
+d:Ge/FlatCollectionElectrode1/TransZ             = Ge/FlatnessMonitor/HL - 12.053 mm
+d:Ge/FlatCollectionElectrode1/RotX               = 0 deg
+d:Ge/FlatCollectionElectrode1/RotY               = 0 deg
+d:Ge/FlatCollectionElectrode1/RotZ               = 0 deg
+d:Ge/FlatCollectionElectrode1/RMax               = 185 mm
+d:Ge/FlatCollectionElectrode1/HL                 = 0.001 mm
+s:Ge/FlatCollectionElectrode1/Color              = "red"
+s:Ge/FlatCollectionElectrode1/DrawingStyle       = "FullWireframe"
+
+s:Ge/FlatCollectionElectrode1_KAPTON/Type               = "TsCylinder"
+s:Ge/FlatCollectionElectrode1_KAPTON/Parent             = "FlatnessMonitor"
+s:Ge/FlatCollectionElectrode1_KAPTON/Material           = "G4_KAPTON"
+d:Ge/FlatCollectionElectrode1_KAPTON/TransX             = 0 cm
+d:Ge/FlatCollectionElectrode1_KAPTON/TransY             = 0 cm
+d:Ge/FlatCollectionElectrode1_KAPTON/TransZ             = Ge/FlatnessMonitor/HL - 12.0395 mm
+d:Ge/FlatCollectionElectrode1_KAPTON/RotX               = 0 deg
+d:Ge/FlatCollectionElectrode1_KAPTON/RotY               = 0 deg
+d:Ge/FlatCollectionElectrode1_KAPTON/RotZ               = 0 deg
+d:Ge/FlatCollectionElectrode1_KAPTON/RMax               = 185 mm
+d:Ge/FlatCollectionElectrode1_KAPTON/HL                 = 0.0125 mm
+s:Ge/FlatCollectionElectrode1_KAPTON/Color              = "white"
+s:Ge/FlatCollectionElectrode1_KAPTON/DrawingStyle       = "FullWireframe"
+
+s:Ge/FlatCollectionElectrode2/Type               = "TsCylinder"
+s:Ge/FlatCollectionElectrode2/Parent             = "FlatnessMonitor"
+s:Ge/FlatCollectionElectrode2/Material           = "Copper"
+d:Ge/FlatCollectionElectrode2/TransX             = 0 cm
+d:Ge/FlatCollectionElectrode2/TransY             = 0 cm
+d:Ge/FlatCollectionElectrode2/TransZ             = Ge/FlatnessMonitor/HL - 28.084 mm
+d:Ge/FlatCollectionElectrode2/RotX               = 0 deg
+d:Ge/FlatCollectionElectrode2/RotY               = 0 deg
+d:Ge/FlatCollectionElectrode2/RotZ               = 0 deg
+d:Ge/FlatCollectionElectrode2/RMax               = 185 mm
+d:Ge/FlatCollectionElectrode2/HL                 = 0.001 mm
+s:Ge/FlatCollectionElectrode2/Color              = "red"
+s:Ge/FlatCollectionElectrode2/DrawingStyle       = "FullWireframe"
+
+s:Ge/FlatCollectionElectrode2_KAPTON/Type               = "TsCylinder"
+s:Ge/FlatCollectionElectrode2_KAPTON/Parent             = "FlatnessMonitor"
+s:Ge/FlatCollectionElectrode2_KAPTON/Material           = "G4_KAPTON"
+d:Ge/FlatCollectionElectrode2_KAPTON/TransX             = 0 cm
+d:Ge/FlatCollectionElectrode2_KAPTON/TransY             = 0 cm
+d:Ge/FlatCollectionElectrode2_KAPTON/TransZ             = Ge/FlatnessMonitor/HL - 28.0975 mm
+d:Ge/FlatCollectionElectrode2_KAPTON/RotX               = 0 deg
+d:Ge/FlatCollectionElectrode2_KAPTON/RotY               = 0 deg
+d:Ge/FlatCollectionElectrode2_KAPTON/RotZ               = 0 deg
+d:Ge/FlatCollectionElectrode2_KAPTON/RMax               = 185 mm
+d:Ge/FlatCollectionElectrode2_KAPTON/HL                 = 0.0125 mm
+s:Ge/FlatCollectionElectrode2_KAPTON/Color              = "white"
+s:Ge/FlatCollectionElectrode2_KAPTON/DrawingStyle       = "FullWireframe"
+
+# Flatness_High Voltage Electrode
+
+s:Ge/FlatHighVoltageElectrode1/Type               = "TsCylinder"
+s:Ge/FlatHighVoltageElectrode1/Parent             = "FlatnessMonitor"
+s:Ge/FlatHighVoltageElectrode1/Material           = "Copper"
+d:Ge/FlatHighVoltageElectrode1/TransX             = 0 cm
+d:Ge/FlatHighVoltageElectrode1/TransY             = 0 cm
+d:Ge/FlatHighVoltageElectrode1/TransZ             = Ge/FlatnessMonitor/HL - 20.055 mm
+d:Ge/FlatHighVoltageElectrode1/RotX               = 0 deg
+d:Ge/FlatHighVoltageElectrode1/RotY               = 0 deg
+d:Ge/FlatHighVoltageElectrode1/RotZ               = 0 deg
+d:Ge/FlatHighVoltageElectrode1/RMax               = 185 mm
+d:Ge/FlatHighVoltageElectrode1/HL                 = 0.001 mm
+s:Ge/FlatHighVoltageElectrode1/Color              = "grey"
+s:Ge/FlatHighVoltageElectrode1/DrawingStyle       = "FullWireframe"
+
+s:Ge/FlatHighVoltageElectrode_KAPTON/Type               = "TsCylinder"
+s:Ge/FlatHighVoltageElectrode_KAPTON/Parent             = "FlatnessMonitor"
+s:Ge/FlatHighVoltageElectrode_KAPTON/Material           = "G4_KAPTON"
+d:Ge/FlatHighVoltageElectrode_KAPTON/TransX             = 0 cm
+d:Ge/FlatHighVoltageElectrode_KAPTON/TransY             = 0 cm
+d:Ge/FlatHighVoltageElectrode_KAPTON/TransZ             = Ge/FlatnessMonitor/HL - 20.0685 mm
+d:Ge/FlatHighVoltageElectrode_KAPTON/RotX               = 0 deg
+d:Ge/FlatHighVoltageElectrode_KAPTON/RotY               = 0 deg
+d:Ge/FlatHighVoltageElectrode_KAPTON/RotZ               = 0 deg
+d:Ge/FlatHighVoltageElectrode_KAPTON/RMax               = 185 mm
+d:Ge/FlatHighVoltageElectrode_KAPTON/HL                 = 0.0125 mm
+s:Ge/FlatHighVoltageElectrode_KAPTON/Color              = "white"
+s:Ge/FlatHighVoltageElectrode_KAPTON/DrawingStyle       = "FullWireframe"
+
+s:Ge/FlatHighVoltageElectrode2/Type               = "TsCylinder"
+s:Ge/FlatHighVoltageElectrode2/Parent             = "FlatnessMonitor"
+s:Ge/FlatHighVoltageElectrode2/Material           = "Copper"
+d:Ge/FlatHighVoltageElectrode2/TransX             = 0 cm
+d:Ge/FlatHighVoltageElectrode2/TransY             = 0 cm
+d:Ge/FlatHighVoltageElectrode2/TransZ             = Ge/FlatnessMonitor/HL - 20.082 mm
+d:Ge/FlatHighVoltageElectrode2/RotX               = 0 deg
+d:Ge/FlatHighVoltageElectrode2/RotY               = 0 deg
+d:Ge/FlatHighVoltageElectrode2/RotZ               = 0 deg
+d:Ge/FlatHighVoltageElectrode2/RMax               = 185 mm
+d:Ge/FlatHighVoltageElectrode2/HL                 = 0.001 mm
+s:Ge/FlatHighVoltageElectrode2/Color              = "grey"
+s:Ge/FlatHighVoltageElectrode2/DrawingStyle       = "FullWireframe"
+
+################################
+# Phantom
+################################
+
+s:Ge/AirEnvironment/Type     = "TsBox"
+s:Ge/AirEnvironment/Parent   = "World"
+s:Ge/AirEnvironment/Material = "G4_AIR"
+d:Ge/AirEnvironment/HLX      = 500. mm
+d:Ge/AirEnvironment/HLY      = 500. mm
+d:Ge/AirEnvironment/HLZ      = 895.95 mm
+d:Ge/AirEnvironment/TransZ   = 0 mm 
+s:Ge/AirEnvironment/Color              = "blue"
+
+s:Ge/CTWrap/Type     = "TsBox"
+s:Ge/CTWrap/Parent   = "AirEnvironment"
+s:Ge/CTWrap/Material = "G4_AIR"
+d:Ge/CTWrap/HLX      = 350. mm
+d:Ge/CTWrap/HLY      = 350. mm
+d:Ge/CTWrap/HLZ      = 350. mm
+s:Ge/CTWrap/Color              = "red"
+d:Ge/CTWrap/RotX     = 0. deg
+d:Ge/CTWrap/RotY     = 90. deg
+d:Ge/CTWrap/RotZ     = 180. deg
+
+s:Ge/Patient/Parent   = "CTWrap"
+s:Ge/Patient/Material = "G4_WATER"
+d:Ge/Patient/TransX   = 0. m
+d:Ge/Patient/TransY   = 0. m
+d:Ge/Patient/TransZ   = 0. m
+d:Ge/Patient/RotX     = 0. deg
+d:Ge/Patient/RotY     = 0. deg
+d:Ge/Patient/RotZ     = 0. deg
+
+################################
+# View Option
+################################
+
+b:Ts/PauseBeforeQuit = "F"
+b:Gr/ViewA/IncludeTrajectories = "True"
+b:Gr/ViewA/IncludeAxes      = "True"
+d:Gr/ViewA/AxesSize = 0.5 m
+#s:Gr/ViewA/Type             = "OpenGL"
+i:Gr/ViewA/WindowSizeX      = 1024
+i:Gr/ViewA/WindowSizeY      = 768
+d:Gr/ViewA/Theta            = 45 deg
+d:Gr/ViewA/Phi              = 45 deg
+u:Gr/ViewA/TransX           = 0.
+s:Gr/ViewA/Projection       = "Perspective"
+d:Gr/ViewA/PerspectiveAngle = 0 deg
+u:Gr/ViewA/Zoom             = 1.5
+b:Gr/ViewA/HiddenLineRemovalForTrajectories = "True"
+b:Gr/ViewA/CopyOpenGLToEPS  = "False"
+b:Ge/CheckForOverlaps = "True"

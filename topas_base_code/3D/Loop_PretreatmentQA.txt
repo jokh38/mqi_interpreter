@@ -1,0 +1,36 @@
+includeFile = SMC_PBN_Nozzle.txt
+
+i:Ts/Seed = 1
+
+sv:Ma/Water/Components=2 "Hydrogen" "Oxygen"
+uv:Ma/Water/Fractions=2 0.111894 0.888106
+d:Ma/Water/Density=1.000 g/cm3
+d:Ma/Water/MeanExcitationEnergy=72.0 eV
+s:Ma/Water/DefaultColor="blue"
+
+s:Ph/ListName = "MyPhy"
+s:Ph/MyPhy/Type = "Geant4_Modular"
+sv:Ph/MyPhy/Modules = 7 "g4em-standard_opt3" "g4h-phy_QGSP_BIC_HP" "g4decay" "g4ion-binarycascade" "g4h-elastic_HP" "g4stopping" "g4radioactivedecay"
+
+################################
+# Beam Parameters
+################################
+
+# Beam Parameters for loop#
+
+s:So/MyBeam/Type = "Emittance" # Beam, Isotropic, Emittance or PhaseSpace
+s:So/MyBeam/Component = "BeamPosition"
+s:So/MyBeam/BeamParticle = "proton"
+s:So/MyBeam/Distribution = "BiGaussian" # Flat or Gaussian
+u:so/Mybeam/correlationX = -1
+u:so/Mybeam/correlationY = -1
+
+s:Sc/Dosemap/Quantity                         =  "DoseToMedium"
+s:Sc/Dosemap/Component                        = "ScorePhantom"
+b:Sc/Dosemap/OutputToConsole                  = "False"
+s:Sc/Dosemap/IfOutputFileAlreadyExists        = "Overwrite"
+b:Sc/Dosemap/Visualize    = "TRUE"
+s:Sc/Dosemap/Outputfile        = "Dosemap"
+s:Sc/Dosemap/OutputType = "Dicom"
+
+

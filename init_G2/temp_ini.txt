@@ -1,0 +1,1 @@
+E:\Scanning generator\Release\scv_init -SMC.txt
