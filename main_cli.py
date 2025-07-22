@@ -38,9 +38,8 @@ def execute_command(command: str) -> dict:
             "stderr": str(e)
         }
 
-def find_dcm_file_in_logdir(case_path: str, logdir: str = "logs") -> Optional[str]:
+def find_dcm_file_in_logdir(logdir_path: str) -> Optional[str]:
     """Find .dcm file in the logdir folder."""
-    logdir_path = f"{case_path}/{logdir}"
     
     # Search for .dcm files in logdir
     result = execute_command(f"find {shlex.quote(logdir_path)} -name '*.dcm' -type f")
@@ -76,7 +75,7 @@ def main():
     # Find DCM file in logdir
     rtplan_path = find_dcm_file_in_logdir(str(args.logdir))
     if not rtplan_path:
-        raise FileNotFoundError(f"No .dcm file found in {args.logdir}/logs directory")
+        raise FileNotFoundError(f"No .dcm file found in {args.logdir} directory")
     
     print(f"Found RTPLAN: {rtplan_path}")
 
