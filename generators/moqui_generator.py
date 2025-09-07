@@ -24,7 +24,9 @@ MIN_DOSERATE = 1.4  # (MU/s)
 MAX_SPEED = 20.0 * 100  # (cm/s)
 MIN_SPEED = 0.1 * 100  # (cm/s)
 TIME_RESOLUTION = 0.1/1000  # (s) = 0.1ms
-DOSERATE_TABLE_PATH = 'LS_doserate.csv'
+
+SCRIPT_DIR = pathlib.Path(__file__).resolve().parent
+DOSERATE_TABLE_PATH = SCRIPT_DIR / 'LS_doserate.csv'
 
 def get_monitor_range_factor(monitor_range_code: int) -> float:
     """
@@ -48,8 +50,7 @@ def get_monitor_range_factor(monitor_range_code: int) -> float:
 def _load_doserate_table() -> np.ndarray:
     """선량율 테이블을 로드하고 캐싱 (한 번만 로드)"""
     try:
-        doserate_path = pathlib.Path(DOSERATE_TABLE_PATH)
-        return np.loadtxt(doserate_path, delimiter=',', encoding='utf-8-sig')
+        return np.loadtxt(DOSERATE_TABLE_PATH, delimiter=',', encoding='utf-8-sig')
     except FileNotFoundError:
         print(f"Warning: 선량율 테이블 파일을 찾을 수 없습니다: {DOSERATE_TABLE_PATH}")
         return np.array([])
@@ -359,7 +360,7 @@ def generate_moqui_csvs(rt_plan_data: dict,
             # Write RTPlan CSV (interpolated)
             rtplan_csv_path = rtplan_field_dir / csv_file_name
             try:
-                with open(rtplan_csv_path, 'w', newline='') as f:
+                with open(rtplan_csv_path, 'w', newline='', encoding='utf-8') as f:
                     writer = csv.writer(f)
                     writer.writerow(["Time (ms)", "X (mm)", "Y (mm)", "MU"]) # Header
                     if interpolated_rtplan_data:
@@ -373,7 +374,7 @@ def generate_moqui_csvs(rt_plan_data: dict,
             log_csv_path = log_field_dir / csv_file_name
             log_csv_rows = zip(time_ms, x_mm, y_mm, corrected_mu)
             try:
-                with open(log_csv_path, 'w', newline='') as f:
+                with open(log_csv_path, 'w', newline='', encoding='utf-8') as f:
                     writer = csv.writer(f)
                     writer.writerow(["Time (ms)", "X (mm)", "Y (mm)", "MU"]) # Header
                     writer.writerows(log_csv_rows)

@@ -1,9 +1,7 @@
 import argparse
 from pathlib import Path
 import sys # For sys.exit
-import subprocess
-import shlex
-from typing import Optional
+from typing import Optional, List
 
 # Attempt to import project-specific modules
 try:
@@ -22,40 +20,29 @@ except ImportError as e:
     # as they are crucial for the script's purpose.
     sys.exit(1) # Exit if crucial imports fail
 
-def execute_command(command: str) -> dict:
-    """Execute a shell command and return the result."""
-    try:
-        result = subprocess.run(command, shell=True, capture_output=True, text=True)
-        return {
-            "exit_code": result.returncode,
-            "stdout": result.stdout,
-            "stderr": result.stderr
-        }
-    except Exception as e:
-        return {
-            "exit_code": -1,
-            "stdout": "",
-            "stderr": str(e)
-        }
-
 def find_dcm_file_in_logdir(logdir_path: str) -> Optional[str]:
-    """Find .dcm file in the logdir folder."""
-    
-    # Search for .dcm files in logdir
-    result = execute_command(f"find {shlex.quote(logdir_path)} -name '*.dcm' -type f")
-    
-    if result["exit_code"] == 0 and result["stdout"].strip():
-        dcm_files = result["stdout"].strip().split('\n')
-        
-        # Prefer RTPLAN.dcm if it exists, otherwise return first .dcm file
-        for dcm_file in dcm_files:
-            if 'RTPLAN' in dcm_file.upper():
-                return dcm_file.strip()
-        
-        # Return first .dcm file found
-        return dcm_files[0].strip()
-    
-    return None
+    """Find a .dcm file in the logdir folder using a cross-platform approach."""
+    logdir = Path(logdir_path)
+    if not logdir.is_dir():
+        return None
+
+    # Use rglob to recursively find all .dcm files.
+    # The result is a generator, so we convert it to a list.
+    dcm_files: List[Path] = list(logdir.rglob('*.dcm'))
+
+    if not dcm_files:
+        return None
+
+    # Sort files to have a predictable order, as rglob doesn't guarantee it.
+    dcm_files.sort()
+
+    # Prefer a file with 'RTPLAN' in its name (case-insensitive).
+    for dcm_file in dcm_files:
+        if 'RTPLAN' in dcm_file.name.upper():
+            return str(dcm_file)
+
+    # If no 'RTPLAN' file is found, return the first .dcm file from the sorted list.
+    return str(dcm_files[0])
 
 def main():
     """
@@ -114,13 +101,17 @@ def main():
         
         print(f"Selected config file: {config_file}")
         
+        # Construct absolute path to the config file relative to this script's location
+        script_dir = Path(__file__).resolve().parent
+        config_path = script_dir / config_file
+
         # 3. Load Configurations
-        print(f"\nLoading SCV init parameters from: {config_file}...")
-        if not Path(config_file).is_file():
-            raise FileNotFoundError(f"SCV init config file not found: {config_file}")
-        scv_init_params = config_loader.parse_scv_init(config_file)
+        print(f"\nLoading SCV init parameters from: {config_path}...")
+        if not config_path.is_file():
+            raise FileNotFoundError(f"SCV init config file not found: {config_path}")
+        scv_init_params = config_loader.parse_scv_init(str(config_path))
         if not scv_init_params: # parse_scv_init returns empty dict on error or if file is empty
-             raise ValueError(f"Failed to load or parse SCV init parameters from {config_file}. Ensure file is valid and not empty.")
+             raise ValueError(f"Failed to load or parse SCV init parameters from {config_path}. Ensure file is valid and not empty.")
         print("SCV init parameters loaded successfully.")
 
         # 5. Discover and Sort Log Files
@@ -151,12 +142,12 @@ def main():
         # 6. Parse all PTN Log Files
         print("\nParsing PTN log files...")
         ptn_data_list = []
+        
+        print(f"Processing log file started")
         for ptn_file in ptn_file_paths:
-            print(f"Processing log file: {ptn_file.name}...")
             try:
                 ptn_data = log_parser.parse_ptn_file(str(ptn_file), scv_init_params)
                 ptn_data_list.append(ptn_data)
-                print(f"Successfully processed {ptn_file.name}.")
             except Exception as e:
                 print(f"Error processing PTN file {ptn_file.name}: {e}")
                 # Decide if one bad log file should stop everything or just be skipped.

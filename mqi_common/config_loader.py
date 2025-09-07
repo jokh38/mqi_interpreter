@@ -19,7 +19,7 @@ def parse_scv_init(file_path: str) -> dict:
         return config_data
 
     try:
-        with open(file_path, 'r') as f:
+        with open(file_path, 'r', encoding='utf-8') as f:
             for line in f:
                 line = line.strip()
                 if not line or line.startswith('#'):
@@ -100,7 +100,7 @@ def parse_planrange_files(log_dir_path: str) -> dict:
         
         dose_ranges = []
         try:
-            with open(planrange_file, 'r') as f:
+            with open(planrange_file, 'r', encoding='utf-8') as f:
                 lines = f.readlines()
                 # Skip header line
                 for i, line in enumerate(lines):
