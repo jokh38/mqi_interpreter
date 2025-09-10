@@ -1,6 +1,7 @@
 import argparse
 from pathlib import Path
 import sys # For sys.exit
+import shutil
 from typing import Optional, List
 
 # Attempt to import project-specific modules
@@ -73,6 +74,19 @@ def main():
             raise FileNotFoundError(f"RT Plan file not found: {rtplan_path}")
         rt_plan_data = dicom_parser.parse_rtplan(rtplan_path)
         print("RT Plan parsed successfully.")
+        
+        # Copy RTPLAN DICOM file to the output 'plan' directory
+        patient_id = rt_plan_data.get("patient_id")
+        if not patient_id:
+            raise ValueError("Could not find PatientID in RTPLAN to create output directory.")
+        
+        plan_output_dir = args.outputdir / "plan"
+        plan_output_dir.mkdir(parents=True, exist_ok=True)
+        
+        dicom_filename = Path(rtplan_path).name
+        destination_path = plan_output_dir / dicom_filename
+        shutil.copy(rtplan_path, destination_path)
+        print(f"Copied RTPLAN file to: {destination_path}")
         
         # 2. Determine config file based on TreatmentMachineName
         config_file = None

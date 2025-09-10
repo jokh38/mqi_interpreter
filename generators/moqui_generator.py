@@ -249,15 +249,14 @@ def generate_moqui_csvs(rt_plan_data: dict,
         use_interpolation = True
 
     try:
-        patient_id = rt_plan_data["patient_id"]
         beams = rt_plan_data["beams"]
     except KeyError as e:
         raise KeyError(f"Error: Missing essential key {e} in rt_plan_data.")
 
-    # Create separate directories for RTPlan and Log data (with patient_id subdirectory)
-    patient_base_dir = pathlib.Path(output_base_dir) / patient_id
-    rtplan_base_dir = patient_base_dir / "rtplan"
-    log_base_dir = patient_base_dir / "log"
+    # Create separate directories for Plan and Log data
+    base_dir = pathlib.Path(output_base_dir)
+    plan_base_dir = base_dir / "plan"
+    log_base_dir = base_dir / "log"
     
     global_data_idx = 0
 
@@ -269,10 +268,10 @@ def generate_moqui_csvs(rt_plan_data: dict,
         except KeyError as e:
             raise KeyError(f"Error: Missing essential key {e} in beam data for beam index {beam_idx}.")
 
-        rtplan_field_dir = rtplan_base_dir / beam_name
+        plan_field_dir = plan_base_dir / beam_name
         log_field_dir = log_base_dir / beam_name
         try:
-            rtplan_field_dir.mkdir(parents=True, exist_ok=True)
+            plan_field_dir.mkdir(parents=True, exist_ok=True)
             log_field_dir.mkdir(parents=True, exist_ok=True)
         except OSError as e:
             raise IOError(f"Error creating directories: {e}")
@@ -357,27 +356,31 @@ def generate_moqui_csvs(rt_plan_data: dict,
             # CSV Filename
             csv_file_name = f"{layer_idx_in_beam + 1:02d}_{nominal_energy:.2f}MeV.csv"
             
-            # Write RTPlan CSV (interpolated)
-            rtplan_csv_path = rtplan_field_dir / csv_file_name
+            # Write Plan CSV (interpolated)
+            plan_csv_path = plan_field_dir / csv_file_name
             try:
-                with open(rtplan_csv_path, 'w', newline='', encoding='utf-8') as f:
-                    writer = csv.writer(f)
-                    writer.writerow(["Time (ms)", "X (mm)", "Y (mm)", "MU"]) # Header
+                with open(plan_csv_path, 'w', encoding='utf-8') as f:
                     if interpolated_rtplan_data:
-                        writer.writerows(interpolated_rtplan_data)
+                        # Flatten the list of lists into a single list of values
+                        all_values = [item for sublist in interpolated_rtplan_data for item in sublist]
+                        # Convert all values to string and join with a comma
+                        output_string = ",".join(map(str, all_values))
+                        f.write(output_string)
             except IOError as e:
-                raise IOError(f"Error writing RTPlan CSV file {rtplan_csv_path}: {e}")
+                raise IOError(f"Error writing Plan CSV file {plan_csv_path}: {e}")
             except Exception as e:
-                raise RuntimeError(f"An unexpected error occurred while writing RTPlan CSV {rtplan_csv_path}: {e}")
+                raise RuntimeError(f"An unexpected error occurred while writing Plan CSV {plan_csv_path}: {e}")
 
             # Write Log CSV (with monitor range factor)
             log_csv_path = log_field_dir / csv_file_name
             log_csv_rows = zip(time_ms, x_mm, y_mm, corrected_mu)
             try:
-                with open(log_csv_path, 'w', newline='', encoding='utf-8') as f:
-                    writer = csv.writer(f)
-                    writer.writerow(["Time (ms)", "X (mm)", "Y (mm)", "MU"]) # Header
-                    writer.writerows(log_csv_rows)
+                with open(log_csv_path, 'w', encoding='utf-8') as f:
+                    # Flatten the zipped rows into a single list of values
+                    all_values = [item for row in log_csv_rows for item in row]
+                    # Convert all values to string and join with a comma
+                    output_string = ",".join(map(str, all_values))
+                    f.write(output_string)
             except IOError as e:
                 raise IOError(f"Error writing Log CSV file {log_csv_path}: {e}")
             except Exception as e:
