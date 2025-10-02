@@ -360,11 +360,13 @@ def generate_moqui_csvs(rt_plan_data: dict,
             # Write RTPlan CSV (interpolated)
             rtplan_csv_path = rtplan_field_dir / csv_file_name
             try:
-                with open(rtplan_csv_path, 'w', newline='', encoding='utf-8') as f:
-                    writer = csv.writer(f)
-                    writer.writerow(["Time (ms)", "X (mm)", "Y (mm)", "MU"]) # Header
+                with open(rtplan_csv_path, 'w', encoding='utf-8') as f:
                     if interpolated_rtplan_data:
-                        writer.writerows(interpolated_rtplan_data)
+                        # Flatten the list of lists into a single list of values
+                        all_values = [item for sublist in interpolated_rtplan_data for item in sublist]
+                        # Convert all values to string and join with a comma
+                        output_string = ",".join(map(str, all_values))
+                        f.write(output_string)
             except IOError as e:
                 raise IOError(f"Error writing RTPlan CSV file {rtplan_csv_path}: {e}")
             except Exception as e:
@@ -374,10 +376,12 @@ def generate_moqui_csvs(rt_plan_data: dict,
             log_csv_path = log_field_dir / csv_file_name
             log_csv_rows = zip(time_ms, x_mm, y_mm, corrected_mu)
             try:
-                with open(log_csv_path, 'w', newline='', encoding='utf-8') as f:
-                    writer = csv.writer(f)
-                    writer.writerow(["Time (ms)", "X (mm)", "Y (mm)", "MU"]) # Header
-                    writer.writerows(log_csv_rows)
+                with open(log_csv_path, 'w', encoding='utf-8') as f:
+                    # Flatten the zipped rows into a single list of values
+                    all_values = [item for row in log_csv_rows for item in row]
+                    # Convert all values to string and join with a comma
+                    output_string = ",".join(map(str, all_values))
+                    f.write(output_string)
             except IOError as e:
                 raise IOError(f"Error writing Log CSV file {log_csv_path}: {e}")
             except Exception as e:
