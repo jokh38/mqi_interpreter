@@ -102,18 +102,16 @@ def extract_and_generate_aperture_data_g1(ds, rt_plan_data: dict, output_base_di
         # Only process G1 machines
         if "G1" not in treatment_machine_name:
             continue
-        output_path = Path(output_base_dir) / patient_id
+
+        output_dir = Path(output_base_dir) / patient_id
         
         # Check aperture first - only export if IonBlockSequence is not None
         if hasattr(beam_ds, 'IonBlockSequence') and beam_ds.IonBlockSequence:
             aperture_data = extract_aperture_data(beam_ds)
             if aperture_data:
                 # Generate aperture files in both rtplan and log folders
-                rtplan_aperture_path = rtplan_field_dir / f"{beam_name.lower()}_aperture.csv"
-                log_aperture_path = log_field_dir / f"{beam_name.lower()}_aperture.csv"
-                
+                output_path = output_dir / f"{beam_name.lower()}_aperture.csv"
                 generate_aperture_csv(beam_name, aperture_data, str(output_path))
-                
                 aperture_files_created.append(str(output_path))
                 
                 print(f"Generated aperture files for G1 beam: {output_path}")
@@ -124,16 +122,13 @@ def extract_and_generate_aperture_data_g1(ds, rt_plan_data: dict, output_base_di
             mlc_data = extract_mlc_data(beam_ds)
             if mlc_data:
                 # Generate MLC files in both rtplan and log folders
-                rtplan_mlc_path = rtplan_field_dir / f"{beam_name.lower()}_mlc.csv"
-                log_mlc_path = log_field_dir / f"{beam_name.lower()}_mlc.csv"
                 
-                generate_mlc_csv(beam_name, mlc_data, str(rtplan_mlc_path))
-                generate_mlc_csv(beam_name, mlc_data, str(log_mlc_path))
+                output_path = output_dir / f"{beam_name.lower()}_mlc.csv"
+                generate_mlc_csv(beam_name, mlc_data, str(output_path))
                 
-                aperture_files_created.append(str(rtplan_mlc_path))
-                aperture_files_created.append(str(log_mlc_path))
+                aperture_files_created.append(str(output_path))
                 
-                print(f"Generated MLC files for G1 beam: {rtplan_mlc_path} and {log_mlc_path}")
+                print(f"Generated MLC files for G1 beam: {output_path}")
                 continue
         
         print(f"No qualifying aperture or MLC data found for G1 beam: {beam_name}")
