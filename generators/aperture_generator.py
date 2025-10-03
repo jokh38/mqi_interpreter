@@ -82,10 +82,7 @@ def extract_and_generate_aperture_data_g1(ds, rt_plan_data: dict, output_base_di
     from parsers.dicom_parser import extract_aperture_data, extract_mlc_data
     
     # Create output directories with patient_id subdirectory for both rtplan and log
-    patient_id = rt_plan_data.get("patient_id", "unknown_patient")
-    
     aperture_files_created = []
-    
     if not hasattr(ds, 'IonBeamSequence') or not ds.IonBeamSequence:
         print("No ion beams found in DICOM file")
         return aperture_files_created
@@ -103,13 +100,12 @@ def extract_and_generate_aperture_data_g1(ds, rt_plan_data: dict, output_base_di
         if "G1" not in treatment_machine_name:
             continue
 
-        output_dir = Path(output_base_dir) / patient_id
+        output_dir = Path(output_base_dir)
         
         # Check aperture first - only export if IonBlockSequence is not None
         if hasattr(beam_ds, 'IonBlockSequence') and beam_ds.IonBlockSequence:
             aperture_data = extract_aperture_data(beam_ds)
             if aperture_data:
-                # Generate aperture files in both rtplan and log folders
                 output_path = output_dir / f"{beam_name.lower()}_aperture.csv"
                 generate_aperture_csv(beam_name, aperture_data, str(output_path))
                 aperture_files_created.append(str(output_path))
@@ -121,8 +117,6 @@ def extract_and_generate_aperture_data_g1(ds, rt_plan_data: dict, output_base_di
         if _has_mlc_beyond_home_position(beam_ds):
             mlc_data = extract_mlc_data(beam_ds)
             if mlc_data:
-                # Generate MLC files in both rtplan and log folders
-                
                 output_path = output_dir / f"{beam_name.lower()}_mlc.csv"
                 generate_mlc_csv(beam_name, mlc_data, str(output_path))
                 

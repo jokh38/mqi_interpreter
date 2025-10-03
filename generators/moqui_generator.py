@@ -254,10 +254,9 @@ def generate_moqui_csvs(rt_plan_data: dict,
     except KeyError as e:
         raise KeyError(f"Error: Missing essential key {e} in rt_plan_data.")
 
-    # Create separate directories for RTPlan and Log data (with patient_id subdirectory)
-    patient_base_dir = pathlib.Path(output_base_dir) / patient_id
-    rtplan_base_dir = patient_base_dir / "rtplan"
-    log_base_dir = patient_base_dir / "log"
+    # Create separate directories for RTPlan and Log data inside the patient directory
+    rtplan_base_dir = pathlib.Path(output_base_dir) / "rtplan"
+    log_base_dir = pathlib.Path(output_base_dir) / "log"
     
     global_data_idx = 0
 
