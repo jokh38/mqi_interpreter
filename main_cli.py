@@ -155,9 +155,8 @@ def main():
                 raise  
         print("All PTN log files parsed successfully.")
 
-        # Prepare patient-specific output directory
-        patient_id = rt_plan_data.get("patient_id", "unknown_patient")
-        patient_output_dir = args.outputdir / patient_id
+        # Use outputdir directly (already includes patient_id if needed)
+        patient_output_dir = args.outputdir
 
         # 7. Generate MOQUI CSVs
         print("\nGenerating MOQUI CSV files...")
