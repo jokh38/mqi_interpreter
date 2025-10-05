@@ -265,11 +265,14 @@ def generate_moqui_csvs(rt_plan_data: dict,
             beam_name = beam["beam_name"] # For logging or more detailed dir names if needed
             beam_name = re.sub(r'[^a-zA-Z0-9_\-]', '_', beam_name)
             energy_layers = beam["energy_layers"]
+            is_setup_field = beam.get("is_setup_field", False)
         except KeyError as e:
             raise KeyError(f"Error: Missing essential key {e} in beam data for beam index {beam_idx}.")
 
-        rtplan_field_dir = rtplan_base_dir / beam_name
-        log_field_dir = log_base_dir / beam_name
+        # Add "0_" prefix to setup field folders so they appear first in alphabetical order
+        folder_name = f"0_{beam_name}" if is_setup_field else beam_name
+        rtplan_field_dir = rtplan_base_dir / folder_name
+        log_field_dir = log_base_dir / folder_name
         try:
             rtplan_field_dir.mkdir(parents=True, exist_ok=True)
             log_field_dir.mkdir(parents=True, exist_ok=True)

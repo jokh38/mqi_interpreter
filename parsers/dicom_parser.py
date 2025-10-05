@@ -70,6 +70,9 @@ def parse_rtplan(file_path: str) -> dict:
         beam_name = getattr(beam_ds, 'BeamName', '')
 
         beam_data = {}
+        # Mark if this is a setup field
+        beam_data["is_setup_field"] = (beam_description == "Site Setup" or beam_name == "SETUP")
+
         try:
             beam_data["beam_name"] = beam_ds.BeamName
         except AttributeError:
