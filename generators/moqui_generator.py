@@ -73,8 +73,8 @@ def generate_moqui_csvs(rt_plan_data: dict,
     except KeyError as e:
         raise KeyError(f"Error: Missing essential key {e} in rt_plan_data.")
 
-    # Create output directory
-    output_dir = pathlib.Path(output_base_dir)
+    # Create output directory with "log" subfolder for PTN-based CSV files
+    log_dir = pathlib.Path(output_base_dir) / "log"
 
     global_data_idx = 0
 
@@ -89,7 +89,7 @@ def generate_moqui_csvs(rt_plan_data: dict,
 
         # Add "0_" prefix to setup field folders so they appear first in alphabetical order
         folder_name = f"0_{beam_name}" if is_setup_field else beam_name
-        field_dir = output_dir / folder_name
+        field_dir = log_dir / folder_name
         try:
             field_dir.mkdir(parents=True, exist_ok=True)
         except OSError as e:
