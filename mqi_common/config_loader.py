@@ -3,7 +3,7 @@ import os
 def parse_scv_init(file_path: str) -> dict:
     """
     Parses a SCV initialization file and returns a dictionary of key-value pairs.
-    Maps config file keys to log_parser expected keys.
+    Keeps all parameters with their original names (PRESET and POS are different).
 
     Args:
         file_path: The path to the SCV initialization file.
@@ -37,27 +37,11 @@ def parse_scv_init(file_path: str) -> dict:
                     print(f"Warning: Could not parse line: {line}")
     except IOError:
         print(f"Error: Could not read file at {file_path}")
-    
-    # Map config file keys to log_parser expected keys
-    mapped_config = {}
-    key_mapping = {
-        'XPRESETOFFSET': 'XPOSOFFSET',
-        'YPRESETOFFSET': 'YPOSOFFSET',
-        'XPRESETGAIN': 'XPOSGAIN',  # Using PRESET gain instead of POS gain
-        'YPRESETGAIN': 'YPOSGAIN',  # Using PRESET gain instead of POS gain
-        'TIMEGAIN': 'TIMEGAIN'
-    }
-    
-    for config_key, parser_key in key_mapping.items():
-        if config_key in config_data:
-            mapped_config[parser_key] = config_data[config_key]
-    
-    # Add original keys that don't need mapping
-    for key, value in config_data.items():
-        if key not in key_mapping and key not in mapped_config:
-            mapped_config[key] = value
-    
-    return mapped_config
+
+    # Return all parameters as-is without mapping
+    # PTN files use: XPOSOFFSET, YPOSOFFSET, XPOSGAIN, YPOSGAIN, TIMEGAIN
+    # MGN files use: XPRESETOFFSET, YPRESETOFFSET, XPRESETGAIN, YPRESETGAIN, TIMEGAIN
+    return config_data
 
 
 def parse_planrange_files(log_dir_path: str) -> dict:
