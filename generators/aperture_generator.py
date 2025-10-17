@@ -90,7 +90,6 @@ def extract_and_generate_aperture_data_g1(ds, rt_plan_data: dict, output_base_di
     log_output_dir.mkdir(parents=True, exist_ok=True)
     
     aperture_files_created = []
-    
     if not hasattr(ds, 'IonBeamSequence') or not ds.IonBeamSequence:
         print("No ion beams found in DICOM file")
         return aperture_files_created
@@ -157,7 +156,7 @@ def extract_and_generate_aperture_data_g1(ds, rt_plan_data: dict, output_base_di
 def _has_mlc_beyond_home_position(beam_ds):
     """
     Check if MLC positions have changed from home position.
-    Reads Segments[0].LeafPositions as N행 2열 format.
+    A home position is considered to be a large negative value (e.g., <= -9.0 cm).
     N/2 is forced to be integer using N//2.
     
     Args:
@@ -179,44 +178,14 @@ def _has_mlc_beyond_home_position(beam_ds):
         if hasattr(device_pos, 'RTBeamLimitingDeviceType') and 'MLC' in device_pos.RTBeamLimitingDeviceType:
             if hasattr(device_pos, 'LeafJawPositions'):
                 leaf_positions = device_pos.LeafJawPositions
-                N = len(leaf_positions)
-                
-                if N < 2:
-                    return False
-                
-                # N must be even for proper MLC pair formation
-                if N % 2 != 0:
-                    print(f"Warning: Odd number of MLC positions ({N}). Using N//2 for middle index calculation.")
-                
-                # Convert to N행 2열 format: N/2 pairs of (left, right) positions
-                # Use N//2 to ensure integer division as required
-                N_half = N // 2
-                
-                if N_half == 0:
-                    return False
-                
-                # Get positions: first N_half are left positions, second N_half are right positions
-                left_positions = leaf_positions[:N_half]
-                right_positions = leaf_positions[N_half:2*N_half]  # Ensure we take exactly N_half elements
-                
-                if len(left_positions) != len(right_positions):
-                    print(f"Warning: Mismatch in left ({len(left_positions)}) and right ({len(right_positions)}) MLC positions.")
-                    return False
-                
-                # Calculate middle index: N/2 -> N_half, then N_half/2 using integer division
-                # This represents the middle MLC pair index
-                middle_idx = N_half // 2
-                
-                if middle_idx >= len(left_positions) or middle_idx >= len(right_positions):
-                    print(f"Warning: Middle index ({middle_idx}) out of bounds for MLC positions.")
-                    return False
-                
-                # Compare middle MLC pair with outermost (first) MLC pair
-                # Segments[0].LeafPositions[N/2][1] != Segments[0].LeafPositions[0][1] (left positions)
-                # or 
-                # Segments[0].LeafPositions[N/2][2] != Segments[0].LeafPositions[0][2] (right positions)
-                if (left_positions[middle_idx] != left_positions[0] or 
-                    right_positions[middle_idx] != right_positions[0]):
-                    return True
+                # LeafJawPositions are in mm. We check if any position is greater than -90mm (-9cm).
+                # A value greater than this indicates the leaf is not in its home/retracted position.
+                for pos in leaf_positions:
+                    try:
+                        if float(pos) > -90.0: # -90mm is -9cm
+                            return True
+                    except (ValueError, TypeError):
+                        # Ignore if position is not a valid number
+                        continue
                     
     return False

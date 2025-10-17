@@ -169,32 +169,35 @@ def main():
                 raise  
         print("All PTN log files parsed successfully.")
 
+        # Use outputdir directly (already includes patient_id if needed)
+        patient_output_dir = args.outputdir
+
         # 7. Generate MOQUI CSVs
         print("\nGenerating MOQUI CSV files...")
         # Ensure output directory exists, generate_moqui_csvs will create patient/field subdirs
-        args.outputdir.mkdir(parents=True, exist_ok=True) 
+        patient_output_dir.mkdir(parents=True, exist_ok=True) 
         
         moqui_generator.generate_moqui_csvs(
             rt_plan_data,
             ptn_data_list,
             dose_monitor_ranges,
-            str(args.outputdir) # Function expects string path
+            str(patient_output_dir) # Function expects string path
         )
-        print(f"MOQUI CSV files generated successfully in {args.outputdir}.")
+        print(f"MOQUI CSV files generated successfully in {patient_output_dir}.")
 
         # 8. Export Aperture/MLC Data (automatic for G1 machines with aperture/MLC)
         # Check if any beam is G1 and has aperture or MLC data
         has_g1_beam = any("G1" in beam.get('treatment_machine_name', '') for beam in rt_plan_data.get('beams', []))
         
         if has_g1_beam:
-            print("\nChecking for aperture/MLC data in G1 beams...")
+            print("\nChecking for aperture/MLC data in G1 beams...")            
             try:
                 # Read DICOM file again to access raw beam data
                 import pydicom
                 ds = pydicom.dcmread(rtplan_path)
                 
                 aperture_files = aperture_generator.extract_and_generate_aperture_data_g1(
-                    ds, rt_plan_data, str(args.outputdir)
+                    ds, rt_plan_data, str(patient_output_dir)
                 )
                 
                 if aperture_files:

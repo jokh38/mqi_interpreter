@@ -65,15 +65,14 @@ def parse_rtplan(file_path: str) -> dict:
     first_beam_first_cp_energy_unit_found = False
 
     for i, beam_ds in enumerate(ds.IonBeamSequence):
-        # Filter out Site Setup and SETUP beams
+        # Process all beams including Site Setup and SETUP beams
         beam_description = getattr(beam_ds, 'BeamDescription', '')
         beam_name = getattr(beam_ds, 'BeamName', '')
-        
-        if beam_description == "Site Setup" or beam_name == "SETUP":
-            print(f"Skipping beam {i+1}: {beam_name} (Site Setup or SETUP beam)")
-            continue
-        
+
         beam_data = {}
+        # Mark if this is a setup field
+        beam_data["is_setup_field"] = (beam_description == "Site Setup" or beam_name == "SETUP")
+
         try:
             beam_data["beam_name"] = beam_ds.BeamName
         except AttributeError:

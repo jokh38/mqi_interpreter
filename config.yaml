@@ -1,0 +1,76 @@
+# MQI Interpreter Configuration File
+# This file controls which features are enabled/disabled
+
+# Feature flags
+features:
+  # Generate MOQUI CSV files (always enabled - core functionality)
+  generate_moqui: true
+
+  # Generate TOPAS Monte Carlo simulation files
+  # Requires: topas_base_code folder with template files
+  generate_topas: false
+
+  # Export log data to Excel format
+  # Requires: openpyxl or xlsxwriter library
+  export_excel: false
+
+  # Process MGN (magnet) log files in addition to PTN files
+  # Set to false for PTN-only mode
+  process_mgn: false
+
+# Processing parameters
+processing:
+  # Dose dividing factor for particle count calculation
+  dose_dividing_factor: 10
+
+  # Calibration mode settings (for custom RT plans)
+  calibration_mode:
+    enabled: false
+    use_correction_factors: true
+    multi_energy_layer: false
+
+# TOPAS-specific settings (only used if generate_topas: true)
+topas:
+  # Beam spot size interpolation energies (MeV)
+  beam_spot_energies: [70, 100, 150, 162, 174, 182, 190, 206, 230]
+
+  # Spot crossline sigma values (mm) - SigmaX
+  spot_crossline: [7.0, 5.1, 4.1, 3.8, 1.4, 1.0, 1.0, 0.94, 2.0]
+
+  # Spot inline sigma values (mm) - SigmaY
+  spot_inline: [7.6, 6.0, 4.4, 3.9, 1.4, 1.0, 0.9, 1.05, 2.0]
+
+  # Angular crossline values (rad) - SigmaX'
+  angular_crossline: [0.0043, 0.0032, 0.0024, 0.0023, 0.0015, 0.0014, 0.0014, 0.0013, 0.00125]
+
+  # Angular inline values (rad) - SigmaY'
+  angular_inline: [0.0043, 0.0032, 0.0024, 0.0023, 0.0015, 0.0014, 0.0014, 0.0013, 0.00125]
+
+  # Gaussian energy spread parameters
+  # y = amplitude * exp(-((x - center) / width)^2)
+  energy_spread:
+    amplitude: 0.7224
+    center: 82.75
+    width: 168.5
+
+  # Use HU to material conversion (Schneider method)
+  use_schneider: false
+
+# Excel export settings (only used if export_excel: true)
+excel:
+  # Export PTN data to Excel
+  export_ptn: true
+
+  # Export MGN data to Excel
+  export_mgn: true
+
+  # Include raw values in export
+  include_raw_values: true
+
+# Logging settings
+logging:
+  # Log level: DEBUG, INFO, WARNING, ERROR
+  level: INFO
+
+  # Show progress bars
+  show_progress: true
