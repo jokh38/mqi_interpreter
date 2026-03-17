@@ -45,6 +45,49 @@ def find_dcm_file_in_logdir(logdir_path: str) -> Optional[str]:
     # If no 'RTPLAN' file is found, return the first .dcm file from the sorted list.
     return str(dcm_files[0])
 
+
+def validate_planinfo_against_rtplan(rt_plan_data: dict, planinfo_data: dict) -> None:
+    """Validate PlanInfo fields against RTPLAN-derived metadata."""
+    rtplan_patient_id = str(rt_plan_data.get("patient_id", ""))
+    beams = rt_plan_data.get("beams", [])
+
+    if not rtplan_patient_id:
+        raise ValueError("RTPLAN validation failed: missing patient_id in parsed RTPLAN data.")
+
+    for timestamp_dir in sorted(planinfo_data):
+        info = planinfo_data[timestamp_dir]
+        dicom_patient_id = str(info["DICOM_PATIENT_ID"])
+        dicom_beam_number = info["DICOM_BEAM_NUMBER"]
+        tcsc_field_number = info["TCSC_FIELD_NUMBER"]
+        stop_layer_number = info["STOP_LAYER_NUMBER"]
+
+        if dicom_patient_id != rtplan_patient_id:
+            raise ValueError(
+                f"PlanInfo validation failed in {timestamp_dir}: DICOM_PATIENT_ID "
+                f"{dicom_patient_id} does not match RTPLAN PatientID {rtplan_patient_id}."
+            )
+
+        if dicom_beam_number < 1 or dicom_beam_number > len(beams):
+            raise ValueError(
+                f"PlanInfo validation failed in {timestamp_dir}: DICOM_BEAM_NUMBER "
+                f"{dicom_beam_number} is out of range for RTPLAN beam count {len(beams)}."
+            )
+
+        if tcsc_field_number != dicom_beam_number:
+            raise ValueError(
+                f"PlanInfo validation failed in {timestamp_dir}: TCSC_FIELD_NUMBER "
+                f"{tcsc_field_number} does not match DICOM_BEAM_NUMBER {dicom_beam_number}."
+            )
+
+        beam = beams[dicom_beam_number - 1]
+        expected_layers = len(beam.get("energy_layers", []))
+        if stop_layer_number != expected_layers:
+            raise ValueError(
+                f"PlanInfo validation failed in {timestamp_dir}: STOP_LAYER_NUMBER "
+                f"{stop_layer_number} does not match RTPLAN energy layer count {expected_layers} "
+                f"for beam {dicom_beam_number}."
+            )
+
 def main():
     """
     Main function to orchestrate the parsing and generation process.
@@ -144,6 +187,11 @@ def main():
         print(f"\nLoading dose monitor ranges from PlanRange.txt files in: {args.logdir}...")
         planrange_data = config_loader.parse_planrange_files(str(args.logdir))
         print("PlanRange.txt files loaded successfully.")
+
+        print(f"\nLoading PlanInfo.txt files in: {args.logdir}...")
+        planinfo_data = config_loader.parse_planinfo_files(str(args.logdir))
+        validate_planinfo_against_rtplan(rt_plan_data, planinfo_data)
+        print("PlanInfo.txt files validated successfully.")
         
         # Combine all dose ranges from all timestamp directories
         all_dose_ranges = []

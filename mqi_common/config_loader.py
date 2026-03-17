@@ -113,5 +113,75 @@ def parse_planrange_files(log_dir_path: str) -> dict:
     
     return planrange_data
 
+
+def parse_planinfo_files(log_dir_path: str) -> dict:
+    """
+    Parse PlanInfo.txt files from timestamp directories in log folder.
+
+    Args:
+        log_dir_path: Path to the directory containing timestamp subdirectories
+
+    Returns:
+        A dictionary mapping timestamp_dir -> parsed PlanInfo fields
+
+    Raises:
+        FileNotFoundError: If log directory or PlanInfo.txt files are missing
+        ValueError: If required fields are missing or invalid
+    """
+    if not os.path.exists(log_dir_path):
+        raise FileNotFoundError(f"Error: Log directory not found at {log_dir_path}")
+
+    planinfo_data = {}
+    timestamp_dirs = []
+    for item in os.listdir(log_dir_path):
+        item_path = os.path.join(log_dir_path, item)
+        if os.path.isdir(item_path) and item.isdigit():
+            timestamp_dirs.append(item)
+
+    if not timestamp_dirs:
+        raise ValueError(f"Error: No timestamp directories found in {log_dir_path}")
+
+    required_integer_fields = {"DICOM_BEAM_NUMBER", "TCSC_FIELD_NUMBER", "STOP_LAYER_NUMBER"}
+    required_fields = required_integer_fields | {"DICOM_PATIENT_ID"}
+
+    for timestamp_dir in timestamp_dirs:
+        planinfo_file = os.path.join(log_dir_path, timestamp_dir, "PlanInfo.txt")
+
+        if not os.path.exists(planinfo_file):
+            raise FileNotFoundError(f"Error: PlanInfo.txt not found in {timestamp_dir}")
+
+        parsed_fields = {}
+        try:
+            with open(planinfo_file, "r", encoding="utf-8") as f:
+                for line_number, line in enumerate(f, start=1):
+                    line = line.strip()
+                    if not line:
+                        continue
+
+                    parts = line.split(",", 1)
+                    if len(parts) != 2:
+                        raise ValueError(f"Error: Invalid line format in {planinfo_file}, line {line_number}")
+
+                    key, value = parts[0].strip(), parts[1].strip()
+                    if key in required_integer_fields:
+                        try:
+                            parsed_fields[key] = int(value)
+                        except ValueError as exc:
+                            raise ValueError(
+                                f"Error: Invalid integer value for {key} in {planinfo_file}, line {line_number}"
+                            ) from exc
+                    elif key in required_fields:
+                        parsed_fields[key] = value
+        except IOError as exc:
+            raise IOError(f"Error: Could not read PlanInfo.txt from {timestamp_dir}") from exc
+
+        missing_fields = sorted(required_fields - parsed_fields.keys())
+        if missing_fields:
+            raise ValueError(f"Error: Missing required PlanInfo fields in {planinfo_file}: {', '.join(missing_fields)}")
+
+        planinfo_data[timestamp_dir] = parsed_fields
+
+    return planinfo_data
+
 if __name__ == '__main__':
     pass
