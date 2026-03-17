@@ -72,9 +72,8 @@ def generate_moqui_csvs(rt_plan_data: dict,
     except KeyError as e:
         raise KeyError(f"Error: Missing essential key {e} in rt_plan_data.")
 
-    # Create separate directories for Plan and Log data
+    # Create directory for log-based MOQUI CSV data
     base_dir = pathlib.Path(output_base_dir)
-    plan_base_dir = base_dir / "plan"
     log_base_dir = base_dir / "log"
     
     global_data_idx = 0
@@ -88,13 +87,14 @@ def generate_moqui_csvs(rt_plan_data: dict,
         except KeyError as e:
             raise KeyError(f"Error: Missing essential key {e} in beam data for beam index {beam_idx}.")
 
-        plan_field_dir = plan_base_dir / beam_name
+        if beam_name == "SETUP":
+            continue
+
         log_field_dir = log_base_dir / beam_name
         try:
-            plan_field_dir.mkdir(parents=True, exist_ok=True)
             log_field_dir.mkdir(parents=True, exist_ok=True)
         except OSError as e:
-            raise IOError(f"Error creating directory {field_dir}: {e}")
+            raise IOError(f"Error creating directory {log_field_dir}: {e}")
 
         for layer_idx_in_beam, energy_layer in enumerate(energy_layers):
             if global_data_idx >= len(ptn_data_list):
@@ -165,21 +165,6 @@ def generate_moqui_csvs(rt_plan_data: dict,
             # CSV Filename
             csv_file_name = f"{layer_idx_in_beam + 1:02d}_{nominal_energy:.2f}MeV.csv"
             
-            # Write Plan CSV (interpolated)
-            plan_csv_path = plan_field_dir / csv_file_name
-            try:
-                with open(plan_csv_path, 'w', encoding='utf-8') as f:
-                    if interpolated_rtplan_data:
-                        # Flatten the list of lists into a single list of values
-                        all_values = [item for sublist in interpolated_rtplan_data for item in sublist]
-                        # Convert all values to string and join with a comma
-                        output_string = ",".join(map(str, all_values))
-                        f.write(output_string)
-            except IOError as e:
-                raise IOError(f"Error writing Plan CSV file {plan_csv_path}: {e}")
-            except Exception as e:
-                raise RuntimeError(f"An unexpected error occurred while writing Plan CSV {plan_csv_path}: {e}")
-
             # Write Log CSV (with monitor range factor)
             log_csv_path = log_field_dir / csv_file_name
             log_csv_rows = zip(time_ms, x_mm, y_mm, corrected_mu)
