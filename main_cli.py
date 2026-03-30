@@ -53,6 +53,11 @@ def validate_planinfo_against_rtplan(rt_plan_data: dict, planinfo_data: dict) ->
     """Validate PlanInfo fields against RTPLAN-derived metadata."""
     rtplan_patient_id = str(rt_plan_data.get("patient_id", ""))
     beams = rt_plan_data.get("beams", [])
+    beams_by_number = {
+        beam_number: beam
+        for beam in beams
+        if (beam_number := beam.get("beam_number")) is not None
+    }
 
     if not rtplan_patient_id:
         raise ValueError(
@@ -72,19 +77,14 @@ def validate_planinfo_against_rtplan(rt_plan_data: dict, planinfo_data: dict) ->
                 f"{dicom_patient_id} does not match RTPLAN PatientID {rtplan_patient_id}."
             )
 
-        if dicom_beam_number < 1 or dicom_beam_number > len(beams):
+        beam = beams_by_number.get(dicom_beam_number)
+        if beam is None:
             raise ValueError(
                 f"PlanInfo validation failed in {timestamp_dir}: DICOM_BEAM_NUMBER "
-                f"{dicom_beam_number} is out of range for RTPLAN beam count {len(beams)}."
+                f"{dicom_beam_number} was not found in RTPLAN beam numbers "
+                f"{sorted(beams_by_number)}."
             )
 
-        if tcsc_field_number != dicom_beam_number:
-            raise ValueError(
-                f"PlanInfo validation failed in {timestamp_dir}: TCSC_FIELD_NUMBER "
-                f"{tcsc_field_number} does not match DICOM_BEAM_NUMBER {dicom_beam_number}."
-            )
-
-        beam = beams[dicom_beam_number - 1]
         max_layers = len(beam.get("energy_layers", []))
         if stop_layer_number < 1 or stop_layer_number > max_layers:
             raise ValueError(

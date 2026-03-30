@@ -82,6 +82,15 @@ def parse_rtplan(file_path: str) -> dict:
             beam_data["beam_name"] = f"Beam_{i+1}_Unnamed" # Or raise error
             # raise ValueError(f"Error: Missing BeamName for beam index {i}")
 
+        try:
+            beam_data["beam_number"] = int(beam_ds.BeamNumber)
+        except AttributeError:
+            beam_data["beam_number"] = None
+        except (TypeError, ValueError):
+            raise ValueError(
+                f"Error: Invalid BeamNumber for beam '{beam_data['beam_name']}'."
+            )
+
         beam_data["snout_position"] = None # From first control point of this beam
         beam_data["has_range_shifter"] = "RangeShifterSequence" in beam_ds and bool(beam_ds.RangeShifterSequence)
         beam_data["energy_layers"] = []

@@ -23,6 +23,7 @@ def test_main_uses_configured_dose_dividing_factor(
         "beams": [
             {
                 "beam_name": "BeamA",
+                "beam_number": 1,
                 "treatment_machine_name": "G1",
                 "energy_layers": [{"nominal_energy": 150.0}],
             }
