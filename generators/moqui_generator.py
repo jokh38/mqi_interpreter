@@ -76,6 +76,10 @@ def generate_moqui_csvs(rt_plan_data: dict,
     base_dir = pathlib.Path(output_base_dir)
     log_base_dir = base_dir / "log"
     
+    def is_setup_beam(beam_data: dict) -> bool:
+        beam_name = beam_data.get("beam_name", "")
+        return beam_name == "SETUP" or beam_data.get("is_setup_field", False)
+
     global_data_idx = 0
 
     for beam_idx, beam in enumerate(beams):
@@ -87,7 +91,7 @@ def generate_moqui_csvs(rt_plan_data: dict,
         except KeyError as e:
             raise KeyError(f"Error: Missing essential key {e} in beam data for beam index {beam_idx}.")
 
-        if beam_name == "SETUP":
+        if is_setup_beam(beam):
             continue
 
         log_field_dir = log_base_dir / beam_name
@@ -183,7 +187,11 @@ def generate_moqui_csvs(rt_plan_data: dict,
             global_data_idx += 1
             
     # Final check to ensure all ptn_data and dose_monitor_ranges were consumed if expected
-    total_layers_in_plan = sum(len(b.get("energy_layers", [])) for b in beams)
+    total_layers_in_plan = sum(
+        len(beam.get("energy_layers", []))
+        for beam in beams
+        if not is_setup_beam(beam)
+    )
     if global_data_idx != total_layers_in_plan:
         print(
             f"Warning: Number of processed layers ({global_data_idx}) does not match "
