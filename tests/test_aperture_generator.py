@@ -4,11 +4,11 @@ from types import SimpleNamespace
 from generators.aperture_generator import extract_and_generate_aperture_data_g1
 
 
-def test_extract_and_generate_aperture_data_g1_exports_both_aperture_and_mlc(
+def test_extract_and_generate_aperture_data_g1_exports_aperture_and_mlc_to_plan_only(
     monkeypatch, tmp_path: Path
 ) -> None:
     beam_ds = SimpleNamespace(
-        BeamName="Field1",
+        BeamName="Field1:TX",
         TreatmentMachineName="G1",
         BeamDescription="",
         IonBlockSequence=[object()],
@@ -55,8 +55,7 @@ def test_extract_and_generate_aperture_data_g1_exports_both_aperture_and_mlc(
 
     created = extract_and_generate_aperture_data_g1(ds, {}, str(tmp_path))
 
-    assert len(created) == 4
-    assert (tmp_path / "plan" / "Field1" / "field1_aperture.csv").is_file()
-    assert (tmp_path / "log" / "Field1" / "field1_aperture.csv").is_file()
-    assert (tmp_path / "plan" / "Field1" / "field1_mlc.csv").is_file()
-    assert (tmp_path / "log" / "Field1" / "field1_mlc.csv").is_file()
+    assert len(created) == 2
+    assert (tmp_path / "plan" / "Field1_TX" / "field1_tx_aperture.csv").is_file()
+    assert (tmp_path / "plan" / "Field1_TX" / "field1_tx_mlc.csv").is_file()
+    assert not (tmp_path / "log").exists()
