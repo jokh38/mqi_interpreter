@@ -5,20 +5,6 @@ from typing import Dict, List
 
 import numpy as np
 
-# Attempt to import interpolators
-try:
-    from processing.interpolation import (
-        PROTON_DOSE_INTERPOLATOR,
-        MU_COUNT_DOSE_INTERPOLATOR
-    )
-except ImportError:
-    # This allows the module to be imported for basic linting/viewing even if dependencies are missing,
-    # but functions using these will fail at runtime if they are None.
-    print("Warning: Could not import interpolators from processing.interpolation.")
-    print("Ensure numpy and scipy are installed and the processing package is structured correctly.")
-    PROTON_DOSE_INTERPOLATOR = None
-    MU_COUNT_DOSE_INTERPOLATOR = None
-
 def get_monitor_range_factor(monitor_range_code: int) -> float:
     """
     Determines the monitorRangeFactor based on the monitor_range_code.
@@ -63,14 +49,7 @@ def generate_moqui_csvs(
         IndexError: If ptn_data_list or dose_monitor_ranges are shorter than
                     the total number of energy layers.
         IOError: If directory or file creation fails.
-        RuntimeError: If interpolators are not available.
     """
-    if PROTON_DOSE_INTERPOLATOR is None or MU_COUNT_DOSE_INTERPOLATOR is None:
-        print("Warning: Interpolators are not available. MU corrections will not be applied.")
-        use_interpolation = False
-    else:
-        use_interpolation = True
-
     try:
         beams = rt_plan_data["beams"]
     except KeyError as e:
@@ -143,14 +122,9 @@ def generate_moqui_csvs(
 
             monitor_range_factor = get_monitor_range_factor(monitor_range_code)
 
-            # Apply MU Corrections using log-based approach (matching C++ MOQUIThread)
-            # Use dose1_au from PTN as the raw MU count
+            # Match the original C++ MOQUIThread:
+            # apply monitor range scaling and dose dividing only at CSV generation.
             corrected_mu = dose1_au.astype(float)
-
-            # Apply energy-dependent correction factors if available
-            if use_interpolation:
-                corrected_mu *= PROTON_DOSE_INTERPOLATOR(nominal_energy)
-                corrected_mu *= MU_COUNT_DOSE_INTERPOLATOR(nominal_energy)
 
             # Apply monitor range factor
             corrected_mu *= monitor_range_factor
