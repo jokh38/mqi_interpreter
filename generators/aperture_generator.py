@@ -1,6 +1,5 @@
-import os
-from pathlib import Path
 import csv
+from pathlib import Path
 
 
 def generate_aperture_csv(beam_name: str, aperture_data: dict, output_path: str):
@@ -129,7 +128,6 @@ def extract_and_generate_aperture_data_g1(ds, rt_plan_data: dict, output_base_di
                 aperture_files_created.append(str(log_aperture_path))
                 
                 print(f"Generated aperture files for G1 beam: {plan_aperture_path} and {log_aperture_path}")
-                continue
         
         # Check MLC - only export if MLC positions are greater than -9 (home position)
         if _has_mlc_beyond_home_position(beam_ds):
@@ -146,7 +144,6 @@ def extract_and_generate_aperture_data_g1(ds, rt_plan_data: dict, output_base_di
                 aperture_files_created.append(str(log_mlc_path))
                 
                 print(f"Generated MLC files for G1 beam: {plan_mlc_path} and {log_mlc_path}")
-                continue
         
         print(f"No qualifying aperture or MLC data found for G1 beam: {beam_name}")
     

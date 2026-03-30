@@ -1,7 +1,9 @@
+import csv
 import pathlib
-import numpy as np
-import os
 import re
+from typing import Dict, List
+
+import numpy as np
 
 # Attempt to import interpolators
 try:
@@ -36,11 +38,13 @@ def get_monitor_range_factor(monitor_range_code: int) -> float:
         return 1.0
 
 
-def generate_moqui_csvs(rt_plan_data: dict,
-                        ptn_data_list: list[dict],
-                        dose_monitor_ranges: list[int],
-                        output_base_dir: str,
-                        dose_dividing_factor: int = 10):
+def generate_moqui_csvs(
+    rt_plan_data: Dict,
+    ptn_data_list: List[Dict],
+    dose_monitor_ranges: List[int],
+    output_base_dir: str,
+    dose_dividing_factor: int = 10,
+):
     """
     Generates CSV files for MOQUI based on RTPLAN and processed PTN log data.
     Uses log-based approach: directly uses time, position, and MU data from PTN files.
@@ -173,12 +177,9 @@ def generate_moqui_csvs(rt_plan_data: dict,
             log_csv_path = log_field_dir / csv_file_name
             log_csv_rows = zip(time_ms, x_mm, y_mm, corrected_mu)
             try:
-                with open(log_csv_path, 'w', encoding='utf-8') as f:
-                    # Flatten the zipped rows into a single list of values
-                    all_values = [item for row in log_csv_rows for item in row]
-                    # Convert all values to string and join with a comma
-                    output_string = ",".join(map(str, all_values))
-                    f.write(output_string)
+                with open(log_csv_path, "w", newline="", encoding="utf-8") as f:
+                    writer = csv.writer(f)
+                    writer.writerows(log_csv_rows)
             except IOError as e:
                 raise IOError(f"Error writing Log CSV file {log_csv_path}: {e}")
             except Exception as e:

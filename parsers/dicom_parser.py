@@ -1,6 +1,8 @@
+from pathlib import Path
+
+import numpy as np
 import pydicom
 from pydicom.errors import InvalidDicomError
-import os
 
 def parse_rtplan(file_path: str) -> dict:
     """
@@ -17,11 +19,12 @@ def parse_rtplan(file_path: str) -> dict:
         InvalidDicomError: If the file is not a valid DICOM file.
         ValueError: If the Modality is not "RTPLAN", or if critical DICOM tags are missing.
     """
-    if not os.path.exists(file_path):
-        raise FileNotFoundError(f"Error: DICOM file not found at {file_path}")
+    dicom_path = Path(file_path)
+    if not dicom_path.is_file():
+        raise FileNotFoundError(f"Error: DICOM file not found at {dicom_path}")
 
     try:
-        ds = pydicom.dcmread(file_path)
+        ds = pydicom.dcmread(str(dicom_path))
     except InvalidDicomError:
         raise InvalidDicomError(f"Error: Invalid DICOM file at {file_path}")
     except Exception as e:
@@ -166,7 +169,6 @@ def parse_rtplan(file_path: str) -> dict:
                 try:
                     # Check for Line Scanning Position Map - tag (300B,1094)
                     if hasattr(cp_ds, 'data_element') or (0x300b, 0x1094) in cp_ds:
-                        import numpy as np
                         # Extract binary data and convert to float32
                         line_scan_data = cp_ds[0x300b, 0x1094].value
                         positions_array = np.frombuffer(line_scan_data, dtype=np.float32)
@@ -240,9 +242,6 @@ def parse_rtplan(file_path: str) -> dict:
         rt_plan_data["beams"].append(beam_data)
 
     return rt_plan_data
-
-if __name__ == '__main__':
-    pass
 
 
 def extract_aperture_data(beam_ds):
@@ -359,3 +358,7 @@ def extract_mlc_data(beam_ds):
                                         })
                                     
     return mlc_data
+
+
+if __name__ == "__main__":
+    pass

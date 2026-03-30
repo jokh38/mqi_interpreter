@@ -1,6 +1,5 @@
 import numpy as np
 from scipy.interpolate import PchipInterpolator
-import math # For math.exp if preferred, though np.exp is fine for single values too
 
 # 1. Correction Data Constants
 PROTON_PER_DOSE_ENERGY_RANGE = np.array([

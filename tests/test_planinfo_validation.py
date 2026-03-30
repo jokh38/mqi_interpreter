@@ -95,7 +95,7 @@ def test_validate_planinfo_against_rtplan_rejects_mismatched_stop_layer() -> Non
             "DICOM_PATIENT_ID": "55061194",
             "DICOM_BEAM_NUMBER": 2,
             "TCSC_FIELD_NUMBER": 2,
-            "STOP_LAYER_NUMBER": 33,
+            "STOP_LAYER_NUMBER": 35,
         }
     }
 
