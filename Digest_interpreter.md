@@ -145,13 +145,4 @@ Parses `PlanRange.txt` files found within timestamped subdirectories of the log 
 ---
 
 ## 5. Processing (`processing/`)
-
-### `interpolation.py`
-
-This module provides interpolation and data correction functionalities.
-
-#### `ConstExtrapPchipInterpolator`
-A wrapper for SciPy's `PchipInterpolator` that provides constant value extrapolation for values outside the defined energy range.
-
-#### `gaussian_energy_spread(energy: float)`
-Calculates the Gaussian energy spread based on the input energy using the formula: `0.7224 * exp(-(((energy - 82.75) / 168.5)^2))`.
+The processing package is currently a placeholder and does not expose an active calibration module in the CLI path.
