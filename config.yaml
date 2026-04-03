@@ -21,7 +21,7 @@ features:
 # Processing parameters
 processing:
   # Dose dividing factor for particle count calculation
-  dose_dividing_factor: 10
+  dose_dividing_factor: 1
 
   # Calibration mode settings (for custom RT plans)
   calibration_mode:
