@@ -1,21 +1,9 @@
+import csv
 import pathlib
-import numpy as np
-import os
 import re
+from typing import Dict, List
 
-# Attempt to import interpolators
-try:
-    from processing.interpolation import (
-        PROTON_DOSE_INTERPOLATOR,
-        MU_COUNT_DOSE_INTERPOLATOR
-    )
-except ImportError:
-    # This allows the module to be imported for basic linting/viewing even if dependencies are missing,
-    # but functions using these will fail at runtime if they are None.
-    print("Warning: Could not import interpolators from processing.interpolation.")
-    print("Ensure numpy and scipy are installed and the processing package is structured correctly.")
-    PROTON_DOSE_INTERPOLATOR = None
-    MU_COUNT_DOSE_INTERPOLATOR = None
+import numpy as np
 
 def get_monitor_range_factor(monitor_range_code: int) -> float:
     """
@@ -36,11 +24,13 @@ def get_monitor_range_factor(monitor_range_code: int) -> float:
         return 1.0
 
 
-def generate_moqui_csvs(rt_plan_data: dict,
-                        ptn_data_list: list[dict],
-                        dose_monitor_ranges: list[int],
-                        output_base_dir: str,
-                        dose_dividing_factor: int = 10):
+def generate_moqui_csvs(
+    rt_plan_data: Dict,
+    ptn_data_list: List[Dict],
+    dose_monitor_ranges: List[int],
+    output_base_dir: str,
+    dose_dividing_factor: int = 10,
+):
     """
     Generates CSV files for MOQUI based on RTPLAN and processed PTN log data.
     Uses log-based approach: directly uses time, position, and MU data from PTN files.
@@ -59,14 +49,7 @@ def generate_moqui_csvs(rt_plan_data: dict,
         IndexError: If ptn_data_list or dose_monitor_ranges are shorter than
                     the total number of energy layers.
         IOError: If directory or file creation fails.
-        RuntimeError: If interpolators are not available.
     """
-    if PROTON_DOSE_INTERPOLATOR is None or MU_COUNT_DOSE_INTERPOLATOR is None:
-        print("Warning: Interpolators are not available. MU corrections will not be applied.")
-        use_interpolation = False
-    else:
-        use_interpolation = True
-
     try:
         beams = rt_plan_data["beams"]
     except KeyError as e:
@@ -76,6 +59,10 @@ def generate_moqui_csvs(rt_plan_data: dict,
     base_dir = pathlib.Path(output_base_dir)
     log_base_dir = base_dir / "log"
     
+    def is_setup_beam(beam_data: dict) -> bool:
+        beam_name = beam_data.get("beam_name", "")
+        return beam_name == "SETUP" or beam_data.get("is_setup_field", False)
+
     global_data_idx = 0
 
     for beam_idx, beam in enumerate(beams):
@@ -87,7 +74,7 @@ def generate_moqui_csvs(rt_plan_data: dict,
         except KeyError as e:
             raise KeyError(f"Error: Missing essential key {e} in beam data for beam index {beam_idx}.")
 
-        if beam_name == "SETUP":
+        if is_setup_beam(beam):
             continue
 
         log_field_dir = log_base_dir / beam_name
@@ -135,14 +122,9 @@ def generate_moqui_csvs(rt_plan_data: dict,
 
             monitor_range_factor = get_monitor_range_factor(monitor_range_code)
 
-            # Apply MU Corrections using log-based approach (matching C++ MOQUIThread)
-            # Use dose1_au from PTN as the raw MU count
+            # Match the original C++ MOQUIThread:
+            # apply monitor range scaling and dose dividing only at CSV generation.
             corrected_mu = dose1_au.astype(float)
-
-            # Apply energy-dependent correction factors if available
-            if use_interpolation:
-                corrected_mu *= PROTON_DOSE_INTERPOLATOR(nominal_energy)
-                corrected_mu *= MU_COUNT_DOSE_INTERPOLATOR(nominal_energy)
 
             # Apply monitor range factor
             corrected_mu *= monitor_range_factor
@@ -169,12 +151,9 @@ def generate_moqui_csvs(rt_plan_data: dict,
             log_csv_path = log_field_dir / csv_file_name
             log_csv_rows = zip(time_ms, x_mm, y_mm, corrected_mu)
             try:
-                with open(log_csv_path, 'w', encoding='utf-8') as f:
-                    # Flatten the zipped rows into a single list of values
-                    all_values = [item for row in log_csv_rows for item in row]
-                    # Convert all values to string and join with a comma
-                    output_string = ",".join(map(str, all_values))
-                    f.write(output_string)
+                with open(log_csv_path, "w", newline="", encoding="utf-8") as f:
+                    writer = csv.writer(f)
+                    writer.writerows(log_csv_rows)
             except IOError as e:
                 raise IOError(f"Error writing Log CSV file {log_csv_path}: {e}")
             except Exception as e:
@@ -183,7 +162,11 @@ def generate_moqui_csvs(rt_plan_data: dict,
             global_data_idx += 1
             
     # Final check to ensure all ptn_data and dose_monitor_ranges were consumed if expected
-    total_layers_in_plan = sum(len(b.get("energy_layers", [])) for b in beams)
+    total_layers_in_plan = sum(
+        len(beam.get("energy_layers", []))
+        for beam in beams
+        if not is_setup_beam(beam)
+    )
     if global_data_idx != total_layers_in_plan:
         print(
             f"Warning: Number of processed layers ({global_data_idx}) does not match "

@@ -59,9 +59,13 @@ def test_validate_planinfo_against_rtplan_accepts_matching_data() -> None:
     rt_plan_data = {
         "patient_id": "55061194",
         "beams": [
-            {"beam_name": "SETUP", "energy_layers": [{"nominal_energy": 100.0}]},
-            {"beam_name": "BeamA", "energy_layers": [{} for _ in range(34)]},
-            {"beam_name": "BeamB", "energy_layers": [{} for _ in range(32)]},
+            {
+                "beam_name": "SETUP",
+                "beam_number": 1,
+                "energy_layers": [{"nominal_energy": 100.0}],
+            },
+            {"beam_name": "BeamA", "beam_number": 2, "energy_layers": [{} for _ in range(34)]},
+            {"beam_name": "BeamB", "beam_number": 3, "energy_layers": [{} for _ in range(32)]},
         ],
     }
     planinfo_data = {
@@ -86,8 +90,12 @@ def test_validate_planinfo_against_rtplan_rejects_mismatched_stop_layer() -> Non
     rt_plan_data = {
         "patient_id": "55061194",
         "beams": [
-            {"beam_name": "SETUP", "energy_layers": [{"nominal_energy": 100.0}]},
-            {"beam_name": "BeamA", "energy_layers": [{} for _ in range(34)]},
+            {
+                "beam_name": "SETUP",
+                "beam_number": 1,
+                "energy_layers": [{"nominal_energy": 100.0}],
+            },
+            {"beam_name": "BeamA", "beam_number": 2, "energy_layers": [{} for _ in range(34)]},
         ],
     }
     planinfo_data = {
@@ -95,7 +103,7 @@ def test_validate_planinfo_against_rtplan_rejects_mismatched_stop_layer() -> Non
             "DICOM_PATIENT_ID": "55061194",
             "DICOM_BEAM_NUMBER": 2,
             "TCSC_FIELD_NUMBER": 2,
-            "STOP_LAYER_NUMBER": 33,
+            "STOP_LAYER_NUMBER": 35,
         }
     }
 
@@ -103,12 +111,16 @@ def test_validate_planinfo_against_rtplan_rejects_mismatched_stop_layer() -> Non
         validate_planinfo_against_rtplan(rt_plan_data, planinfo_data)
 
 
-def test_validate_planinfo_against_rtplan_rejects_mismatched_field_number() -> None:
+def test_validate_planinfo_against_rtplan_accepts_independent_tcsc_field_number() -> None:
     rt_plan_data = {
         "patient_id": "55061194",
         "beams": [
-            {"beam_name": "SETUP", "energy_layers": [{"nominal_energy": 100.0}]},
-            {"beam_name": "BeamA", "energy_layers": [{} for _ in range(34)]},
+            {
+                "beam_name": "SETUP",
+                "beam_number": 1,
+                "energy_layers": [{"nominal_energy": 100.0}],
+            },
+            {"beam_name": "BeamA", "beam_number": 2, "energy_layers": [{} for _ in range(34)]},
         ],
     }
     planinfo_data = {
@@ -120,5 +132,28 @@ def test_validate_planinfo_against_rtplan_rejects_mismatched_field_number() -> N
         }
     }
 
-    with pytest.raises(ValueError, match="TCSC_FIELD_NUMBER"):
-        validate_planinfo_against_rtplan(rt_plan_data, planinfo_data)
+    validate_planinfo_against_rtplan(rt_plan_data, planinfo_data)
+
+
+def test_validate_planinfo_against_rtplan_matches_actual_beam_number_not_list_index() -> None:
+    rt_plan_data = {
+        "patient_id": "55061194",
+        "beams": [
+            {
+                "beam_name": "SETUP",
+                "beam_number": 1,
+                "energy_layers": [{"nominal_energy": 100.0}],
+            },
+            {"beam_name": "BeamA", "beam_number": 5, "energy_layers": [{} for _ in range(34)]},
+        ],
+    }
+    planinfo_data = {
+        "2025042401440800": {
+            "DICOM_PATIENT_ID": "55061194",
+            "DICOM_BEAM_NUMBER": 5,
+            "TCSC_FIELD_NUMBER": 5,
+            "STOP_LAYER_NUMBER": 34,
+        }
+    }
+
+    validate_planinfo_against_rtplan(rt_plan_data, planinfo_data)

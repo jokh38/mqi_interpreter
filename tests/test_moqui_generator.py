@@ -94,3 +94,64 @@ def test_setup_skip_does_not_consume_ptn_entries(tmp_path: Path) -> None:
     log_csv = tmp_path / "log" / "BeamB" / "01_150.00MeV.csv"
     assert log_csv.is_file()
     assert log_csv.read_text(encoding="utf-8").startswith("0.0,1.0,3.0,")
+
+
+def test_generate_moqui_csvs_writes_one_row_per_sample(tmp_path: Path) -> None:
+    rt_plan_data = {
+        "beams": [
+            {
+                "beam_name": "BeamC",
+                "energy_layers": [{"nominal_energy": 150.0}],
+            }
+        ]
+    }
+    ptn_data_list = [
+        {
+            "dose1_au": np.array([10, 20], dtype=np.float32),
+            "time_ms": np.array([0.0, 1.0], dtype=np.float32),
+            "x_mm": np.array([1.0, 2.0], dtype=np.float32),
+            "y_mm": np.array([3.0, 4.0], dtype=np.float32),
+        }
+    ]
+    dose_monitor_ranges = [2]
+
+    generate_moqui_csvs(rt_plan_data, ptn_data_list, dose_monitor_ranges, str(tmp_path))
+
+    log_csv = tmp_path / "log" / "BeamC" / "01_150.00MeV.csv"
+    rows = log_csv.read_text(encoding="utf-8").splitlines()
+    assert rows == [
+        "0.0,1.0,3.0,2",
+        "1.0,2.0,4.0,4",
+    ]
+
+
+def test_setup_beam_not_counted_in_total_layer_warning(
+    tmp_path: Path, capsys
+) -> None:
+    rt_plan_data = {
+        "beams": [
+            {
+                "beam_name": "SETUP",
+                "is_setup_field": True,
+                "energy_layers": [{"nominal_energy": 100.0}],
+            },
+            {
+                "beam_name": "BeamB",
+                "energy_layers": [{"nominal_energy": 150.0}],
+            },
+        ]
+    }
+    ptn_data_list = [
+        {
+            "dose1_au": np.array([10], dtype=np.float32),
+            "time_ms": np.array([0.0], dtype=np.float32),
+            "x_mm": np.array([1.0], dtype=np.float32),
+            "y_mm": np.array([3.0], dtype=np.float32),
+        }
+    ]
+    dose_monitor_ranges = [2]
+
+    generate_moqui_csvs(rt_plan_data, ptn_data_list, dose_monitor_ranges, str(tmp_path))
+
+    captured = capsys.readouterr()
+    assert "Number of processed layers" not in captured.out
