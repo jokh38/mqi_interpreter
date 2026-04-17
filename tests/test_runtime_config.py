@@ -8,7 +8,7 @@ from mqi_common import config_loader
 def test_load_runtime_config_returns_defaults_when_file_missing(tmp_path: Path) -> None:
     config = config_loader.load_runtime_config(str(tmp_path / "missing.yaml"))
 
-    assert config["processing"]["dose_dividing_factor"] == 10
+    assert config["processing"]["dose_dividing_factor"] == 1
     assert config["processing"]["calibration_mode"] == {
         "enabled": False,
         "use_correction_factors": True,

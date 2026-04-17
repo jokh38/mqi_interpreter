@@ -6,7 +6,7 @@ import yaml
 
 DEFAULT_RUNTIME_CONFIG = {
     "processing": {
-        "dose_dividing_factor": 10,
+        "dose_dividing_factor": 1,
         "calibration_mode": {
             "enabled": False,
             "use_correction_factors": True,

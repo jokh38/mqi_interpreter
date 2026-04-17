@@ -3,9 +3,7 @@ from pathlib import Path
 import main_cli
 
 
-def test_main_uses_configured_dose_dividing_factor(
-    monkeypatch, tmp_path: Path
-) -> None:
+def test_main_uses_configured_dose_dividing_factor(monkeypatch, tmp_path: Path) -> None:
     logdir = tmp_path / "logs"
     outputdir = tmp_path / "output"
     logdir.mkdir()
@@ -18,19 +16,25 @@ def test_main_uses_configured_dose_dividing_factor(
         "sys.argv",
         ["main_cli.py", "--logdir", str(logdir), "--outputdir", str(outputdir)],
     )
-    monkeypatch.setattr(main_cli.dicom_parser, "parse_rtplan", lambda path: {
-        "patient_id": "55061194",
-        "beams": [
-            {
-                "beam_name": "BeamA",
-                "beam_number": 1,
-                "treatment_machine_name": "G1",
-                "energy_layers": [{"nominal_energy": 150.0}],
-            }
-        ],
-    })
     monkeypatch.setattr(
-        main_cli.config_loader, "load_runtime_config", lambda config_path=None: {
+        main_cli.dicom_parser,
+        "parse_rtplan",
+        lambda path: {
+            "patient_id": "55061194",
+            "beams": [
+                {
+                    "beam_name": "BeamA",
+                    "beam_number": 1,
+                    "treatment_machine_name": "G1",
+                    "energy_layers": [{"nominal_energy": 150.0}],
+                }
+            ],
+        },
+    )
+    monkeypatch.setattr(
+        main_cli.config_loader,
+        "load_runtime_config",
+        lambda config_path=None: {
             "processing": {
                 "dose_dividing_factor": 7,
                 "calibration_mode": {
@@ -40,7 +44,7 @@ def test_main_uses_configured_dose_dividing_factor(
                 },
             },
             "logging": {"level": "INFO", "show_progress": True},
-        }
+        },
     )
     monkeypatch.setattr(
         main_cli.config_loader, "parse_scv_init", lambda path: {"TIMEGAIN": 1.0}
@@ -79,7 +83,11 @@ def test_main_uses_configured_dose_dividing_factor(
     )
 
     def capture_generate_moqui_csvs(
-        rt_plan_data, ptn_data_list, dose_monitor_ranges, output_base_dir, dose_dividing_factor=10
+        rt_plan_data,
+        ptn_data_list,
+        dose_monitor_ranges,
+        output_base_dir,
+        dose_dividing_factor=1,
     ):
         captured["dose_dividing_factor"] = dose_dividing_factor
 

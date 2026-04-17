@@ -5,6 +5,7 @@ from typing import Dict, List
 
 import numpy as np
 
+
 def get_monitor_range_factor(monitor_range_code: int) -> float:
     """
     Determines the monitorRangeFactor based on the monitor_range_code.
@@ -20,7 +21,9 @@ def get_monitor_range_factor(monitor_range_code: int) -> float:
         return 26.80851063829787
     else:
         # Default or error based on strictness. C++ code defaults to 1.0 if not recognized.
-        print(f"Warning: Unrecognized monitor_range_code {monitor_range_code}. Defaulting factor to 1.0.")
+        print(
+            f"Warning: Unrecognized monitor_range_code {monitor_range_code}. Defaulting factor to 1.0."
+        )
         return 1.0
 
 
@@ -29,7 +32,7 @@ def generate_moqui_csvs(
     ptn_data_list: List[Dict],
     dose_monitor_ranges: List[int],
     output_base_dir: str,
-    dose_dividing_factor: int = 10,
+    dose_dividing_factor: int = 1,
 ):
     """
     Generates CSV files for MOQUI based on RTPLAN and processed PTN log data.
@@ -42,7 +45,7 @@ def generate_moqui_csvs(
         dose_monitor_ranges: List of integers representing monitor range codes,
                              corresponding to each energy layer.
         output_base_dir: Base directory for creating output files.
-        dose_dividing_factor: Factor to divide dose values (default: 10).
+        dose_dividing_factor: Factor to divide dose values (default: 1).
 
     Raises:
         KeyError: If essential keys are missing from input data.
@@ -58,7 +61,7 @@ def generate_moqui_csvs(
     # Create directory for log-based MOQUI CSV data
     base_dir = pathlib.Path(output_base_dir)
     log_base_dir = base_dir / "log"
-    
+
     def is_setup_beam(beam_data: dict) -> bool:
         beam_name = beam_data.get("beam_name", "")
         return beam_name == "SETUP" or beam_data.get("is_setup_field", False)
@@ -68,11 +71,13 @@ def generate_moqui_csvs(
     for beam_idx, beam in enumerate(beams):
         try:
             beam_name = beam["beam_name"]
-            beam_name = re.sub(r'[^a-zA-Z0-9_\-]', '_', beam_name)
+            beam_name = re.sub(r"[^a-zA-Z0-9_\-]", "_", beam_name)
             energy_layers = beam["energy_layers"]
             is_setup_field = beam.get("is_setup_field", False)
         except KeyError as e:
-            raise KeyError(f"Error: Missing essential key {e} in beam data for beam index {beam_idx}.")
+            raise KeyError(
+                f"Error: Missing essential key {e} in beam data for beam index {beam_idx}."
+            )
 
         if is_setup_beam(beam):
             continue
@@ -104,21 +109,22 @@ def generate_moqui_csvs(
                 nominal_energy = float(energy_layer["nominal_energy"])
                 # MU from rt_plan_data["energy_layers"]["mu"] is the total MU for this layer,
                 # not used directly in this CSV generation per log point, but for context.
-                
-                dose1_au = ptn_data["dose1_au"] # This is an array of MU counts from the log for each time point
+
+                dose1_au = ptn_data[
+                    "dose1_au"
+                ]  # This is an array of MU counts from the log for each time point
                 time_ms = ptn_data["time_ms"]
                 x_mm = ptn_data["x_mm"]
                 y_mm = ptn_data["y_mm"]
             except KeyError as e:
                 raise KeyError(
                     f"Error: Missing essential key {e} in PTN data for layer index {global_data_idx} "
-                    f"(Beam {beam_idx+1}, Layer in beam {layer_idx_in_beam+1})."
+                    f"(Beam {beam_idx + 1}, Layer in beam {layer_idx_in_beam + 1})."
                 )
-            except TypeError as e: # For float(nominal_energy) if it's not convertible
-                 raise ValueError(
+            except TypeError as e:  # For float(nominal_energy) if it's not convertible
+                raise ValueError(
                     f"Error: Could not convert nominal_energy to float for layer index {global_data_idx}. Value: {energy_layer.get('nominal_energy')}. Error: {e}"
                 )
-
 
             monitor_range_factor = get_monitor_range_factor(monitor_range_code)
 
@@ -137,16 +143,21 @@ def generate_moqui_csvs(
 
             # Prepare CSV Data
             # Ensure all arrays are 1D and have the same length
-            if not (time_ms.ndim == 1 and x_mm.ndim == 1 and y_mm.ndim == 1 and corrected_mu.ndim == 1 and
-                    len(time_ms) == len(x_mm) == len(y_mm) == len(corrected_mu)):
+            if not (
+                time_ms.ndim == 1
+                and x_mm.ndim == 1
+                and y_mm.ndim == 1
+                and corrected_mu.ndim == 1
+                and len(time_ms) == len(x_mm) == len(y_mm) == len(corrected_mu)
+            ):
                 raise ValueError(
                     f"Dimension mismatch in data for CSV generation for layer index {global_data_idx}. "
                     f"Shapes: time_ms={time_ms.shape}, x_mm={x_mm.shape}, y_mm={y_mm.shape}, corrected_mu={corrected_mu.shape}"
                 )
-            
+
             # CSV Filename
             csv_file_name = f"{layer_idx_in_beam + 1:02d}_{nominal_energy:.2f}MeV.csv"
-            
+
             # Write Log CSV (with monitor range factor)
             log_csv_path = log_field_dir / csv_file_name
             log_csv_rows = zip(time_ms, x_mm, y_mm, corrected_mu)
@@ -157,15 +168,15 @@ def generate_moqui_csvs(
             except IOError as e:
                 raise IOError(f"Error writing Log CSV file {log_csv_path}: {e}")
             except Exception as e:
-                raise RuntimeError(f"An unexpected error occurred while writing Log CSV {log_csv_path}: {e}")
+                raise RuntimeError(
+                    f"An unexpected error occurred while writing Log CSV {log_csv_path}: {e}"
+                )
 
             global_data_idx += 1
-            
+
     # Final check to ensure all ptn_data and dose_monitor_ranges were consumed if expected
     total_layers_in_plan = sum(
-        len(beam.get("energy_layers", []))
-        for beam in beams
-        if not is_setup_beam(beam)
+        len(beam.get("energy_layers", [])) for beam in beams if not is_setup_beam(beam)
     )
     if global_data_idx != total_layers_in_plan:
         print(
@@ -174,5 +185,6 @@ def generate_moqui_csvs(
             f"Ensure ptn_data_list and dose_monitor_ranges match the plan structure."
         )
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     pass
