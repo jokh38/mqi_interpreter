@@ -2,7 +2,7 @@ from pathlib import Path
 
 import numpy as np
 
-from generators.moqui_generator import generate_moqui_csvs
+from generators.moqui_generator import generate_moqui_csvs, generate_plan_csvs
 
 
 def test_generate_moqui_csvs_writes_only_log_output(tmp_path: Path) -> None:
@@ -120,8 +120,8 @@ def test_generate_moqui_csvs_writes_one_row_per_sample(tmp_path: Path) -> None:
     log_csv = tmp_path / "log" / "BeamC" / "01_150.00MeV.csv"
     rows = log_csv.read_text(encoding="utf-8").splitlines()
     assert rows == [
-        "0.0,1.0,3.0,2",
-        "1.0,2.0,4.0,4",
+        "0.0,1.0,3.0,10",
+        "1.0,2.0,4.0,20",
     ]
 
 
@@ -155,3 +155,89 @@ def test_setup_beam_not_counted_in_total_layer_warning(
 
     captured = capsys.readouterr()
     assert "Number of processed layers" not in captured.out
+
+
+def test_generate_plan_csvs_writes_plan_output_only(tmp_path: Path) -> None:
+    rt_plan_data = {
+        "beams": [
+            {
+                "beam_name": "BeamPlan",
+                "control_point_details": [
+                    {
+                        "energy": 150.0,
+                        "scan_spot_positions": [1.0, 2.0, 3.0, 4.0],
+                        "scan_spot_meterset_weights": [0.25, 0.5],
+                    }
+                ],
+                "energy_layers": [{"nominal_energy": 150.0}],
+            }
+        ]
+    }
+
+    generate_plan_csvs(rt_plan_data, str(tmp_path), time_gain=0.06)
+
+    plan_csv = tmp_path / "plan" / "BeamPlan" / "01_150.00MeV.csv"
+    assert plan_csv.is_file()
+    assert not (tmp_path / "log").exists()
+
+
+def test_generate_plan_csvs_uses_spot_positions_and_timegain(tmp_path: Path) -> None:
+    rt_plan_data = {
+        "beams": [
+            {
+                "beam_name": "BeamPlan",
+                "control_point_details": [
+                    {
+                        "energy": 150.0,
+                        "scan_spot_positions": [1.0, 2.0, 3.0, 4.0],
+                        "scan_spot_meterset_weights": [0.25, 0.5],
+                    }
+                ],
+                "energy_layers": [{"nominal_energy": 150.0}],
+            }
+        ]
+    }
+
+    generate_plan_csvs(rt_plan_data, str(tmp_path), time_gain=0.06)
+
+    plan_csv = tmp_path / "plan" / "BeamPlan" / "01_150.00MeV.csv"
+    rows = plan_csv.read_text(encoding="utf-8").splitlines()
+    assert rows == [
+        "0.0,1.0,2.0,0.25",
+        "0.06,3.0,4.0,0.5",
+    ]
+
+
+def test_generate_plan_csvs_skips_setup_beams(tmp_path: Path) -> None:
+    rt_plan_data = {
+        "beams": [
+            {
+                "beam_name": "SETUP",
+                "is_setup_field": True,
+                "control_point_details": [
+                    {
+                        "energy": 100.0,
+                        "scan_spot_positions": [1.0, 2.0],
+                        "scan_spot_meterset_weights": [0.25],
+                    }
+                ],
+                "energy_layers": [{"nominal_energy": 100.0}],
+            },
+            {
+                "beam_name": "BeamPlan",
+                "control_point_details": [
+                    {
+                        "energy": 150.0,
+                        "scan_spot_positions": [3.0, 4.0],
+                        "scan_spot_meterset_weights": [0.5],
+                    }
+                ],
+                "energy_layers": [{"nominal_energy": 150.0}],
+            },
+        ]
+    }
+
+    generate_plan_csvs(rt_plan_data, str(tmp_path), time_gain=0.06)
+
+    assert not (tmp_path / "plan" / "SETUP").exists()
+    assert (tmp_path / "plan" / "BeamPlan" / "01_150.00MeV.csv").is_file()

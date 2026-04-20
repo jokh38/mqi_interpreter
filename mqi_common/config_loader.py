@@ -7,6 +7,8 @@ import yaml
 DEFAULT_RUNTIME_CONFIG = {
     "processing": {
         "dose_dividing_factor": 1,
+        "generate_log_csv": True,
+        "generate_plan_csv": False,
         "calibration_mode": {
             "enabled": False,
             "use_correction_factors": True,
