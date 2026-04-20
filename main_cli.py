@@ -122,7 +122,15 @@ def main():
     print(f"Output Directory: {args.outputdir}")
 
     runtime_config = config_loader.load_runtime_config()
-    dose_dividing_factor = runtime_config["processing"]["dose_dividing_factor"]
+    processing_config = runtime_config["processing"]
+    dose_dividing_factor = processing_config["dose_dividing_factor"]
+    generate_log_csv = processing_config["generate_log_csv"]
+    generate_plan_csv = processing_config["generate_plan_csv"]
+
+    if not generate_log_csv and not generate_plan_csv:
+        raise ValueError(
+            "At least one CSV generation mode must be enabled in config.yaml."
+        )
 
     # Find DCM file in logdir
     rtplan_path = find_dcm_file_in_logdir(str(args.logdir))
@@ -194,70 +202,73 @@ def main():
         scv_init_params = config_loader.parse_scv_init(str(config_path))
         print("SCV init parameters loaded successfully.")
 
-        # 5. Discover and Sort Log Files
-        print(f"\nDiscovering .ptn log files in: {args.logdir}...")
-        if not args.logdir.is_dir():
-            raise FileNotFoundError(f"Log directory not found: {args.logdir}")
-
-        ptn_file_paths = sorted(list(args.logdir.glob("**/*.ptn")))
-        if not ptn_file_paths:
-            raise FileNotFoundError(f"No .ptn files found in {args.logdir}.")
-
-        num_log_files = len(ptn_file_paths)
-        print(f"Found {num_log_files} .ptn files.")
-
-        # 4. Load Dose Monitor Ranges from PlanRange.txt files
-        print(
-            f"\nLoading dose monitor ranges from PlanRange.txt files in: {args.logdir}..."
-        )
-        planrange_data = config_loader.parse_planrange_files(str(args.logdir))
-        print("PlanRange.txt files loaded successfully.")
-
-        print(f"\nLoading PlanInfo.txt files in: {args.logdir}...")
-        planinfo_data = config_loader.parse_planinfo_files(str(args.logdir))
-        validate_planinfo_against_rtplan(rt_plan_data, planinfo_data)
-        print("PlanInfo.txt files validated successfully.")
-
-        # Combine all dose ranges from all timestamp directories
-        all_dose_ranges = []
-        for timestamp_dir, dose_ranges in planrange_data.items():
-            all_dose_ranges.extend(dose_ranges)
-
-        dose_monitor_ranges = all_dose_ranges
-        print(f"Total dose monitor ranges loaded: {len(dose_monitor_ranges)}")
-
-        # 6. Parse all PTN Log Files
-        print("\nParsing PTN log files...")
-        ptn_data_list = []
-
-        print(f"Processing log file started")
-        for ptn_file in ptn_file_paths:
-            try:
-                ptn_data = log_parser.parse_ptn_file(str(ptn_file), scv_init_params)
-                ptn_data_list.append(ptn_data)
-            except Exception as e:
-                print(f"Error processing PTN file {ptn_file.name}: {e}")
-                # Decide if one bad log file should stop everything or just be skipped.
-                # For now, let's be strict and re-raise to stop.
-                raise
-        print("All PTN log files parsed successfully.")
-
         # Use outputdir directly (already includes patient_id if needed)
         patient_output_dir = args.outputdir
-
-        # 7. Generate MOQUI CSVs
-        print("\nGenerating MOQUI CSV files...")
-        # Ensure output directory exists, generate_moqui_csvs will create patient/field subdirs
         patient_output_dir.mkdir(parents=True, exist_ok=True)
 
-        moqui_generator.generate_moqui_csvs(
-            rt_plan_data,
-            ptn_data_list,
-            dose_monitor_ranges,
-            str(patient_output_dir),  # Function expects string path
-            dose_dividing_factor=dose_dividing_factor,
-        )
-        print(f"MOQUI CSV files generated successfully in {patient_output_dir}.")
+        if generate_log_csv:
+            # 5. Discover and Sort Log Files
+            print(f"\nDiscovering .ptn log files in: {args.logdir}...")
+            if not args.logdir.is_dir():
+                raise FileNotFoundError(f"Log directory not found: {args.logdir}")
+
+            ptn_file_paths = sorted(list(args.logdir.glob("**/*.ptn")))
+            if not ptn_file_paths:
+                raise FileNotFoundError(f"No .ptn files found in {args.logdir}.")
+
+            num_log_files = len(ptn_file_paths)
+            print(f"Found {num_log_files} .ptn files.")
+
+            # 6. Load dose monitor ranges and plan info for PTN-driven generation
+            print(
+                f"\nLoading dose monitor ranges from PlanRange.txt files in: {args.logdir}..."
+            )
+            planrange_data = config_loader.parse_planrange_files(str(args.logdir))
+            print("PlanRange.txt files loaded successfully.")
+
+            print(f"\nLoading PlanInfo.txt files in: {args.logdir}...")
+            planinfo_data = config_loader.parse_planinfo_files(str(args.logdir))
+            validate_planinfo_against_rtplan(rt_plan_data, planinfo_data)
+            print("PlanInfo.txt files validated successfully.")
+
+            all_dose_ranges = []
+            for timestamp_dir, dose_ranges in planrange_data.items():
+                all_dose_ranges.extend(dose_ranges)
+
+            dose_monitor_ranges = all_dose_ranges
+            print(f"Total dose monitor ranges loaded: {len(dose_monitor_ranges)}")
+
+            print("\nParsing PTN log files...")
+            ptn_data_list = []
+
+            print("Processing log file started")
+            for ptn_file in ptn_file_paths:
+                try:
+                    ptn_data = log_parser.parse_ptn_file(str(ptn_file), scv_init_params)
+                    ptn_data_list.append(ptn_data)
+                except Exception as e:
+                    print(f"Error processing PTN file {ptn_file.name}: {e}")
+                    raise
+            print("All PTN log files parsed successfully.")
+
+            print("\nGenerating log-based MOQUI CSV files...")
+            moqui_generator.generate_moqui_csvs(
+                rt_plan_data,
+                ptn_data_list,
+                dose_monitor_ranges,
+                str(patient_output_dir),
+                dose_dividing_factor=dose_dividing_factor,
+            )
+            print(f"Log-based MOQUI CSV files generated successfully in {patient_output_dir}.")
+
+        if generate_plan_csv:
+            print("\nGenerating RT Plan spot CSV files...")
+            moqui_generator.generate_plan_csvs(
+                rt_plan_data,
+                str(patient_output_dir),
+                time_gain=float(scv_init_params["TIMEGAIN"]),
+            )
+            print(f"RT Plan spot CSV files generated successfully in {patient_output_dir}.")
 
         # 8. Export Aperture/MLC Data (automatic for G1 machines with aperture/MLC)
         # Check if any beam is G1 and has aperture or MLC data

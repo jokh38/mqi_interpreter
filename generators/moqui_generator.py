@@ -6,6 +6,41 @@ from typing import Dict, List
 import numpy as np
 
 
+def _is_setup_beam(beam_data: dict) -> bool:
+    beam_name = beam_data.get("beam_name", "")
+    return beam_name == "SETUP" or beam_data.get("is_setup_field", False)
+
+
+def _sanitize_beam_name(beam_name: str) -> str:
+    return re.sub(r"[^a-zA-Z0-9_\-]", "_", beam_name)
+
+
+def _extract_spot_layers(control_point_details: List[Dict]) -> List[Dict]:
+    spot_layers = []
+
+    for cp_detail in control_point_details:
+        positions = cp_detail.get("scan_spot_positions") or []
+        weights = cp_detail.get("scan_spot_meterset_weights") or []
+        if not positions and not weights:
+            continue
+        if len(positions) % 2 != 0:
+            raise ValueError("Plan spot position map must contain x/y pairs.")
+        if len(positions) // 2 != len(weights):
+            raise ValueError(
+                "Plan spot position and meterset weight counts do not match."
+            )
+
+        spot_layers.append(
+            {
+                "energy": float(cp_detail.get("energy")),
+                "positions": np.asarray(positions, dtype=float).reshape(-1, 2),
+                "weights": np.asarray(weights, dtype=float),
+            }
+        )
+
+    return spot_layers
+
+
 def get_monitor_range_factor(monitor_range_code: int) -> float:
     """
     Determines the monitorRangeFactor based on the monitor_range_code.
@@ -62,16 +97,12 @@ def generate_moqui_csvs(
     base_dir = pathlib.Path(output_base_dir)
     log_base_dir = base_dir / "log"
 
-    def is_setup_beam(beam_data: dict) -> bool:
-        beam_name = beam_data.get("beam_name", "")
-        return beam_name == "SETUP" or beam_data.get("is_setup_field", False)
-
     global_data_idx = 0
 
     for beam_idx, beam in enumerate(beams):
         try:
             beam_name = beam["beam_name"]
-            beam_name = re.sub(r"[^a-zA-Z0-9_\-]", "_", beam_name)
+            beam_name = _sanitize_beam_name(beam_name)
             energy_layers = beam["energy_layers"]
             is_setup_field = beam.get("is_setup_field", False)
         except KeyError as e:
@@ -79,7 +110,7 @@ def generate_moqui_csvs(
                 f"Error: Missing essential key {e} in beam data for beam index {beam_idx}."
             )
 
-        if is_setup_beam(beam):
+        if _is_setup_beam(beam):
             continue
 
         log_field_dir = log_base_dir / beam_name
@@ -176,7 +207,7 @@ def generate_moqui_csvs(
 
     # Final check to ensure all ptn_data and dose_monitor_ranges were consumed if expected
     total_layers_in_plan = sum(
-        len(beam.get("energy_layers", [])) for beam in beams if not is_setup_beam(beam)
+        len(beam.get("energy_layers", [])) for beam in beams if not _is_setup_beam(beam)
     )
     if global_data_idx != total_layers_in_plan:
         print(
@@ -184,6 +215,85 @@ def generate_moqui_csvs(
             f"total energy layers in RTPLAN ({total_layers_in_plan}). "
             f"Ensure ptn_data_list and dose_monitor_ranges match the plan structure."
         )
+
+
+def generate_plan_csvs(
+    rt_plan_data: Dict,
+    output_base_dir: str,
+    time_gain: float,
+):
+    """
+    Generate plan-derived CSV files directly from RTPLAN scan spot data.
+
+    Each CSV row contains synthetic time, planned x/y position, and planned
+    scan spot meterset weight for one spot. Files are written under plan/.
+    """
+    try:
+        beams = rt_plan_data["beams"]
+    except KeyError as e:
+        raise KeyError(f"Error: Missing essential key {e} in rt_plan_data.")
+
+    base_dir = pathlib.Path(output_base_dir)
+    plan_base_dir = base_dir / "plan"
+
+    for beam_idx, beam in enumerate(beams):
+        try:
+            beam_name = _sanitize_beam_name(beam["beam_name"])
+            energy_layers = beam["energy_layers"]
+            control_point_details = beam["control_point_details"]
+        except KeyError as e:
+            raise KeyError(
+                f"Error: Missing essential key {e} in beam data for beam index {beam_idx}."
+            )
+
+        if _is_setup_beam(beam):
+            continue
+
+        plan_field_dir = plan_base_dir / beam_name
+        try:
+            plan_field_dir.mkdir(parents=True, exist_ok=True)
+        except OSError as e:
+            raise IOError(f"Error creating directory {plan_field_dir}: {e}")
+
+        spot_layers = _extract_spot_layers(control_point_details)
+
+        if len(spot_layers) < len(energy_layers):
+            print(
+                f"Warning: Beam {beam_name} has {len(energy_layers)} energy layers but only "
+                f"{len(spot_layers)} control points with scan spot data."
+            )
+
+        for layer_idx_in_beam, energy_layer in enumerate(energy_layers):
+            if layer_idx_in_beam >= len(spot_layers):
+                break
+
+            try:
+                nominal_energy = float(energy_layer["nominal_energy"])
+            except (KeyError, TypeError, ValueError) as e:
+                raise ValueError(
+                    f"Error: Could not convert nominal_energy for beam {beam_name}, "
+                    f"layer {layer_idx_in_beam + 1}. Error: {e}"
+                )
+
+            spot_layer = spot_layers[layer_idx_in_beam]
+            positions = spot_layer["positions"]
+            weights = spot_layer["weights"]
+            time_ms = np.arange(len(weights), dtype=float) * float(time_gain)
+
+            csv_file_name = f"{layer_idx_in_beam + 1:02d}_{nominal_energy:.2f}MeV.csv"
+            plan_csv_path = plan_field_dir / csv_file_name
+            plan_csv_rows = zip(time_ms, positions[:, 0], positions[:, 1], weights)
+
+            try:
+                with open(plan_csv_path, "w", newline="", encoding="utf-8") as f:
+                    writer = csv.writer(f)
+                    writer.writerows(plan_csv_rows)
+            except IOError as e:
+                raise IOError(f"Error writing Plan CSV file {plan_csv_path}: {e}")
+            except Exception as e:
+                raise RuntimeError(
+                    f"An unexpected error occurred while writing Plan CSV {plan_csv_path}: {e}"
+                )
 
 
 if __name__ == "__main__":

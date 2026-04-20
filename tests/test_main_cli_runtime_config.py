@@ -37,6 +37,8 @@ def test_main_uses_configured_dose_dividing_factor(monkeypatch, tmp_path: Path) 
         lambda config_path=None: {
             "processing": {
                 "dose_dividing_factor": 7,
+                "generate_log_csv": True,
+                "generate_plan_csv": False,
                 "calibration_mode": {
                     "enabled": False,
                     "use_correction_factors": True,
@@ -98,3 +100,77 @@ def test_main_uses_configured_dose_dividing_factor(monkeypatch, tmp_path: Path) 
     main_cli.main()
 
     assert captured["dose_dividing_factor"] == 7
+
+
+def test_main_generates_plan_csvs_without_logs(monkeypatch, tmp_path: Path) -> None:
+    logdir = tmp_path / "logs"
+    outputdir = tmp_path / "output"
+    logdir.mkdir()
+    (logdir / "sample_RTPLAN.dcm").write_bytes(b"DICOM")
+
+    captured = {}
+
+    monkeypatch.setattr(
+        "sys.argv",
+        ["main_cli.py", "--logdir", str(logdir), "--outputdir", str(outputdir)],
+    )
+    monkeypatch.setattr(
+        main_cli.dicom_parser,
+        "parse_rtplan",
+        lambda path: {
+            "patient_id": "55061194",
+            "beams": [
+                {
+                    "beam_name": "BeamA",
+                    "beam_number": 1,
+                    "treatment_machine_name": "G1",
+                    "control_point_details": [
+                        {
+                            "energy": 150.0,
+                            "scan_spot_positions": [1.0, 2.0],
+                            "scan_spot_meterset_weights": [0.25],
+                        }
+                    ],
+                    "energy_layers": [{"nominal_energy": 150.0}],
+                }
+            ],
+        },
+    )
+    monkeypatch.setattr(
+        main_cli.config_loader,
+        "load_runtime_config",
+        lambda config_path=None: {
+            "processing": {
+                "dose_dividing_factor": 1,
+                "generate_log_csv": False,
+                "generate_plan_csv": True,
+                "calibration_mode": {
+                    "enabled": False,
+                    "use_correction_factors": True,
+                    "multi_energy_layer": False,
+                },
+            },
+            "logging": {"level": "INFO", "show_progress": True},
+        },
+    )
+    monkeypatch.setattr(
+        main_cli.config_loader, "parse_scv_init", lambda path: {"TIMEGAIN": 0.06}
+    )
+    monkeypatch.setattr(
+        main_cli.aperture_generator,
+        "extract_and_generate_aperture_data_g1",
+        lambda ds, rt_plan_data, output_base_dir: [],
+    )
+
+    def capture_generate_plan_csvs(rt_plan_data, output_base_dir, time_gain):
+        captured["output_base_dir"] = output_base_dir
+        captured["time_gain"] = time_gain
+
+    monkeypatch.setattr(
+        main_cli.moqui_generator, "generate_plan_csvs", capture_generate_plan_csvs
+    )
+
+    main_cli.main()
+
+    assert captured["output_base_dir"] == str(outputdir)
+    assert captured["time_gain"] == 0.06

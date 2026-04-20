@@ -4,6 +4,10 @@ processing:
   # Dose dividing factor for particle count calculation
   dose_dividing_factor: 1
 
+  # Toggle CSV generation modes.
+  generate_log_csv: true
+  generate_plan_csv: false
+
   # Calibration mode settings for custom RT plans.
   # These values are loaded at runtime but are not yet applied elsewhere.
   calibration_mode:

@@ -9,6 +9,8 @@ def test_load_runtime_config_returns_defaults_when_file_missing(tmp_path: Path) 
     config = config_loader.load_runtime_config(str(tmp_path / "missing.yaml"))
 
     assert config["processing"]["dose_dividing_factor"] == 1
+    assert config["processing"]["generate_log_csv"] is True
+    assert config["processing"]["generate_plan_csv"] is False
     assert config["processing"]["calibration_mode"] == {
         "enabled": False,
         "use_correction_factors": True,
@@ -27,6 +29,8 @@ def test_load_runtime_config_merges_yaml_overrides(tmp_path: Path) -> None:
             [
                 "processing:",
                 "  dose_dividing_factor: 7",
+                "  generate_log_csv: false",
+                "  generate_plan_csv: true",
                 "  calibration_mode:",
                 "    enabled: true",
                 "logging:",
@@ -39,6 +43,8 @@ def test_load_runtime_config_merges_yaml_overrides(tmp_path: Path) -> None:
     config = config_loader.load_runtime_config(str(config_path))
 
     assert config["processing"]["dose_dividing_factor"] == 7
+    assert config["processing"]["generate_log_csv"] is False
+    assert config["processing"]["generate_plan_csv"] is True
     assert config["processing"]["calibration_mode"] == {
         "enabled": True,
         "use_correction_factors": True,
