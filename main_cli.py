@@ -126,6 +126,9 @@ def main():
     dose_dividing_factor = processing_config["dose_dividing_factor"]
     generate_log_csv = processing_config["generate_log_csv"]
     generate_plan_csv = processing_config["generate_plan_csv"]
+    plan_csv_normalization_factor_by_machine = processing_config[
+        "plan_csv_normalization_factor_by_machine"
+    ]
 
     if not generate_log_csv and not generate_plan_csv:
         raise ValueError(
@@ -184,8 +187,10 @@ def main():
             )
         elif has_g1:
             config_file = "scv_init_G1.txt"
+            machine_key = "G1"
         elif has_g2:
             config_file = "scv_init_G2.txt"
+            machine_key = "G2"
         else:
             raise ValueError("Error: No G1 or G2 found in TreatmentMachineName")
 
@@ -266,7 +271,10 @@ def main():
             moqui_generator.generate_plan_csvs(
                 rt_plan_data,
                 str(patient_output_dir),
-                time_gain=float(scv_init_params["TIMEGAIN"]),
+                time_gain_ms=float(scv_init_params["TIMEGAIN"]),
+                normalization_factor=float(
+                    plan_csv_normalization_factor_by_machine[machine_key]
+                ),
             )
             print(f"RT Plan spot CSV files generated successfully in {patient_output_dir}.")
 

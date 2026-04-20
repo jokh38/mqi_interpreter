@@ -9,6 +9,10 @@ DEFAULT_RUNTIME_CONFIG = {
         "dose_dividing_factor": 1,
         "generate_log_csv": True,
         "generate_plan_csv": False,
+        "plan_csv_normalization_factor_by_machine": {
+            "G1": 2.1125e-8,
+            "G2": 2.12e-8,
+        },
         "calibration_mode": {
             "enabled": False,
             "use_correction_factors": True,

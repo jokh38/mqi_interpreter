@@ -11,6 +11,10 @@ def test_load_runtime_config_returns_defaults_when_file_missing(tmp_path: Path) 
     assert config["processing"]["dose_dividing_factor"] == 1
     assert config["processing"]["generate_log_csv"] is True
     assert config["processing"]["generate_plan_csv"] is False
+    assert config["processing"]["plan_csv_normalization_factor_by_machine"] == {
+        "G1": 2.1125e-8,
+        "G2": 2.12e-8,
+    }
     assert config["processing"]["calibration_mode"] == {
         "enabled": False,
         "use_correction_factors": True,
@@ -31,6 +35,8 @@ def test_load_runtime_config_merges_yaml_overrides(tmp_path: Path) -> None:
                 "  dose_dividing_factor: 7",
                 "  generate_log_csv: false",
                 "  generate_plan_csv: true",
+                "  plan_csv_normalization_factor_by_machine:",
+                "    G2: 5.0e-8",
                 "  calibration_mode:",
                 "    enabled: true",
                 "logging:",
@@ -45,6 +51,10 @@ def test_load_runtime_config_merges_yaml_overrides(tmp_path: Path) -> None:
     assert config["processing"]["dose_dividing_factor"] == 7
     assert config["processing"]["generate_log_csv"] is False
     assert config["processing"]["generate_plan_csv"] is True
+    assert config["processing"]["plan_csv_normalization_factor_by_machine"] == {
+        "G1": 2.1125e-8,
+        "G2": 5.0e-8,
+    }
     assert config["processing"]["calibration_mode"] == {
         "enabled": True,
         "use_correction_factors": True,

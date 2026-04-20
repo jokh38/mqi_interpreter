@@ -39,6 +39,7 @@ def test_main_uses_configured_dose_dividing_factor(monkeypatch, tmp_path: Path) 
                 "dose_dividing_factor": 7,
                 "generate_log_csv": True,
                 "generate_plan_csv": False,
+                "plan_csv_normalization_factor_by_machine": {"G1": 2.1125e-8, "G2": 2.12e-8},
                 "calibration_mode": {
                     "enabled": False,
                     "use_correction_factors": True,
@@ -77,6 +78,9 @@ def test_main_uses_configured_dose_dividing_factor(monkeypatch, tmp_path: Path) 
             "x_mm": [1.0],
             "y_mm": [2.0],
         },
+    )
+    monkeypatch.setattr(
+        main_cli.config_loader, "parse_scv_init", lambda path: {"TIMEGAIN": 0.06}
     )
     monkeypatch.setattr(
         main_cli.aperture_generator,
@@ -144,6 +148,7 @@ def test_main_generates_plan_csvs_without_logs(monkeypatch, tmp_path: Path) -> N
                 "dose_dividing_factor": 1,
                 "generate_log_csv": False,
                 "generate_plan_csv": True,
+                "plan_csv_normalization_factor_by_machine": {"G1": 2.1125e-8, "G2": 2.12e-8},
                 "calibration_mode": {
                     "enabled": False,
                     "use_correction_factors": True,
@@ -162,9 +167,12 @@ def test_main_generates_plan_csvs_without_logs(monkeypatch, tmp_path: Path) -> N
         lambda ds, rt_plan_data, output_base_dir: [],
     )
 
-    def capture_generate_plan_csvs(rt_plan_data, output_base_dir, time_gain):
+    def capture_generate_plan_csvs(
+        rt_plan_data, output_base_dir, time_gain_ms, normalization_factor
+    ):
         captured["output_base_dir"] = output_base_dir
-        captured["time_gain"] = time_gain
+        captured["time_gain_ms"] = time_gain_ms
+        captured["normalization_factor"] = normalization_factor
 
     monkeypatch.setattr(
         main_cli.moqui_generator, "generate_plan_csvs", capture_generate_plan_csvs
@@ -173,4 +181,5 @@ def test_main_generates_plan_csvs_without_logs(monkeypatch, tmp_path: Path) -> N
     main_cli.main()
 
     assert captured["output_base_dir"] == str(outputdir)
-    assert captured["time_gain"] == 0.06
+    assert captured["time_gain_ms"] == 0.06
+    assert captured["normalization_factor"] == 2.1125e-8

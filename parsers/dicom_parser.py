@@ -4,6 +4,53 @@ import numpy as np
 import pydicom
 from pydicom.errors import InvalidDicomError
 
+
+def _decode_shi_spot_weight(spot_bytes):
+    temp_spot_x1 = int.from_bytes(spot_bytes[0:1], "little")
+    temp_spot_x2 = int.from_bytes(spot_bytes[1:2], "little")
+    temp_spot_x3 = int.from_bytes(spot_bytes[2:3], "little")
+    temp_spot_x4 = int.from_bytes(spot_bytes[3:4], "little")
+    return 2 ** (temp_spot_x3 // 128) * 4 ** (-64 + temp_spot_x4) * (
+        0.5
+        + (temp_spot_x3 % 128) / 2**8
+        + temp_spot_x2 / 2**16
+        + temp_spot_x1 / 2**24
+    )
+
+
+def _decode_shi_spot_position(spot_bytes):
+    temp_spot_x1 = int.from_bytes(spot_bytes[0:1], "little")
+    temp_spot_x2 = int.from_bytes(spot_bytes[1:2], "little")
+
+    sign_pos_x2 = 1 if temp_spot_x2 < 128 else -1
+    det_pos_x3 = temp_spot_x2 % 64
+    det_pos_x2 = -1 if det_pos_x3 > 32 else det_pos_x3
+    det_pos_x1 = 128 - temp_spot_x1
+    ind_helper_x1 = 8 - (2 * (det_pos_x2 + 1) + 1) + abs(
+        1 - (temp_spot_x1 // 128)
+    )
+    real_diff = det_pos_x1 / (2**ind_helper_x1)
+    return sign_pos_x2 * (2 ** (2 * (det_pos_x2 + 1)) - real_diff)
+
+
+def _decode_shi_positions(pos_map_bytes):
+    positions = []
+    for idx in range(0, len(pos_map_bytes), 8):
+        x_bytes = pos_map_bytes[idx + 2 : idx + 4]
+        y_bytes = pos_map_bytes[idx + 6 : idx + 8]
+        positions.append((_decode_shi_spot_position(x_bytes), _decode_shi_spot_position(y_bytes)))
+    return np.asarray(positions, dtype=float)
+
+
+def _decode_shi_weights(mu_map_bytes):
+    return np.asarray(
+        [
+            _decode_shi_spot_weight(mu_map_bytes[idx : idx + 4])
+            for idx in range(0, len(mu_map_bytes), 4)
+        ],
+        dtype=float,
+    )
+
 def parse_rtplan(file_path: str) -> dict:
     """
     Parses an RTPLAN DICOM file and extracts relevant information.
@@ -177,18 +224,15 @@ def parse_rtplan(file_path: str) -> dict:
                 # Method 2: Try Line Scanning Position Map (for line scanning)
                 try:
                     # Check for Line Scanning Position Map - tag (300B,1094)
-                    if hasattr(cp_ds, 'data_element') or (0x300b, 0x1094) in cp_ds:
-                        # Extract binary data and convert to float32
+                    if (0x300b, 0x1094) in cp_ds:
                         line_scan_data = cp_ds[0x300b, 0x1094].value
-                        positions_array = np.frombuffer(line_scan_data, dtype=np.float32)
-                        # Convert from mm to mm and reshape to (n, 2) pairs
-                        positions_reshaped = np.reshape(0.1 * positions_array, (len(positions_array)//2, 2))
-                        cp_detail['scan_spot_positions'] = positions_reshaped.flatten().tolist()
+                        positions_array = _decode_shi_positions(line_scan_data)
+                        cp_detail['scan_spot_positions'] = positions_array.flatten().tolist()
                         
                         # Extract Line Scanning Meterset Weights - tag (300B,1096)
                         if (0x300b, 0x1096) in cp_ds:
                             weights_data = cp_ds[0x300b, 0x1096].value
-                            weights_array = np.frombuffer(weights_data, dtype=np.float32)
+                            weights_array = _decode_shi_weights(weights_data)
                             cp_detail['scan_spot_meterset_weights'] = weights_array.tolist()
                             
                 except Exception as e:

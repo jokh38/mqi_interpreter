@@ -5,6 +5,8 @@ from typing import Dict, List
 
 import numpy as np
 
+from generators.plan_timing import build_layer_time_trajectory
+
 
 def _is_setup_beam(beam_data: dict) -> bool:
     beam_name = beam_data.get("beam_name", "")
@@ -39,6 +41,47 @@ def _extract_spot_layers(control_point_details: List[Dict]) -> List[Dict]:
         )
 
     return spot_layers
+
+
+def _weights_to_mu(weights: np.ndarray, total_mu_for_layer: float) -> np.ndarray:
+    total_weight = float(np.sum(weights))
+    if total_weight > 0:
+        return weights / total_weight * float(total_mu_for_layer)
+    return np.zeros(len(weights), dtype=float)
+
+
+def _resample_plan_layer_to_timegain(
+    positions_mm: np.ndarray,
+    mu_per_spot: np.ndarray,
+    energy: float,
+    time_gain_ms: float,
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    trajectory = build_layer_time_trajectory(
+        positions_cm=positions_mm * 0.1,
+        mu=mu_per_spot,
+        energy=energy,
+    )
+
+    spot_time_s = np.asarray(trajectory["time_axis_s"], dtype=float)
+    spot_x_mm = np.asarray(trajectory["x_cm"], dtype=float) * 10.0
+    spot_y_mm = np.asarray(trajectory["y_cm"], dtype=float) * 10.0
+    spot_cumulative_mu = np.cumsum(mu_per_spot, dtype=float)
+
+    dt_s = float(time_gain_ms) / 1000.0
+    if dt_s <= 0:
+        raise ValueError("time_gain_ms must be positive for plan resampling.")
+
+    t_end_s = float(spot_time_s[-1]) if spot_time_s.size else 0.0
+    sample_time_s = np.arange(0.0, t_end_s + dt_s * 0.5, dt_s, dtype=float)
+    if sample_time_s.size == 0:
+        sample_time_s = np.array([0.0], dtype=float)
+
+    sample_x_mm = np.interp(sample_time_s, spot_time_s, spot_x_mm)
+    sample_y_mm = np.interp(sample_time_s, spot_time_s, spot_y_mm)
+    sample_cumulative_mu = np.interp(sample_time_s, spot_time_s, spot_cumulative_mu)
+    sample_mu = np.diff(sample_cumulative_mu, prepend=0.0)
+
+    return sample_time_s * 1000.0, sample_x_mm, sample_y_mm, sample_mu
 
 
 def get_monitor_range_factor(monitor_range_code: int) -> float:
@@ -220,7 +263,8 @@ def generate_moqui_csvs(
 def generate_plan_csvs(
     rt_plan_data: Dict,
     output_base_dir: str,
-    time_gain: float,
+    time_gain_ms: float,
+    normalization_factor: float | None = None,
 ):
     """
     Generate plan-derived CSV files directly from RTPLAN scan spot data.
@@ -278,11 +322,23 @@ def generate_plan_csvs(
             spot_layer = spot_layers[layer_idx_in_beam]
             positions = spot_layer["positions"]
             weights = spot_layer["weights"]
-            time_ms = np.arange(len(weights), dtype=float) * float(time_gain)
+            layer_mu = float(energy_layer.get("mu", 0.0))
+            mu_per_spot = _weights_to_mu(weights, layer_mu)
+            time_ms, x_mm, y_mm, sample_mu = _resample_plan_layer_to_timegain(
+                positions_mm=positions,
+                mu_per_spot=mu_per_spot,
+                energy=nominal_energy,
+                time_gain_ms=time_gain_ms,
+            )
+            if normalization_factor is not None:
+                if normalization_factor <= 0:
+                    raise ValueError("normalization_factor must be positive.")
+                sample_mu = sample_mu / float(normalization_factor)
+                sample_mu = np.round(sample_mu).astype(int)
 
             csv_file_name = f"{layer_idx_in_beam + 1:02d}_{nominal_energy:.2f}MeV.csv"
             plan_csv_path = plan_field_dir / csv_file_name
-            plan_csv_rows = zip(time_ms, positions[:, 0], positions[:, 1], weights)
+            plan_csv_rows = zip(time_ms, x_mm, y_mm, sample_mu)
 
             try:
                 with open(plan_csv_path, "w", newline="", encoding="utf-8") as f:

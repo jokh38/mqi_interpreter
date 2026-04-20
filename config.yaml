@@ -7,6 +7,9 @@ processing:
   # Toggle CSV generation modes.
   generate_log_csv: true
   generate_plan_csv: false
+  plan_csv_normalization_factor_by_machine:
+    G1: 2.1125e-8
+    G2: 2.12e-8
 
   # Calibration mode settings for custom RT plans.
   # These values are loaded at runtime but are not yet applied elsewhere.
