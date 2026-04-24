@@ -1,6 +1,41 @@
-pydicom
-numpy
-scipy
-openpyxl
-pyyaml
-pytest
+# =============================================================================
+# mqi_interpreter - Fully-pinned offline-installable requirements
+# Python: 3.10.12
+#
+# Install offline from local wheel cache:
+#   pip install -r requirements.txt --no-index --find-links=C:\MOQUI_SMC\dependencies
+# =============================================================================
+
+# ---------------------------------------------------------------------------
+# Runtime dependencies (direct)
+# ---------------------------------------------------------------------------
+numpy==2.2.6
+pydicom==3.0.2
+pyyaml==6.0.3
+scipy==1.15.3
+openpyxl==3.1.5
+
+# ---------------------------------------------------------------------------
+# Runtime transitive dependencies
+# ---------------------------------------------------------------------------
+et_xmlfile==2.0.0              # via openpyxl
+
+# ---------------------------------------------------------------------------
+# Development / testing dependencies
+# ---------------------------------------------------------------------------
+pytest==9.0.3
+
+# ---------------------------------------------------------------------------
+# Development transitive dependencies
+# ---------------------------------------------------------------------------
+pluggy==1.6.0                  # via pytest
+iniconfig==2.3.0               # via pytest
+packaging==26.1                # via pytest
+colorama==0.4.6                # via pytest (Windows)
+pygments==2.20.0               # via pytest
+
+# ---------------------------------------------------------------------------
+# Missing from local cache (Python 3.10 stdlib backports, pulled from PyPI)
+# ---------------------------------------------------------------------------
+exceptiongroup==1.3.1          # via pytest - stdlib backport for Python <3.11
+tomli==2.4.1                   # via pytest - stdlib backport for Python <3.11
